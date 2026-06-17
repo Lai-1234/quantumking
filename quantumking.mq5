@@ -63,37 +63,37 @@ input double Shadow_Mult     = 1.5;    // 影线必须大于实体的倍数
 // ======================================================================
 // SMC_OrderBlock — tune these in the Inputs tab (defaults = research pick)
 // ======================================================================
-input int    SMC_SL_Buffer_Pts = 60;    // SMC SL Buffer pts (below OB)
-input int    SMC_Fib_Tol_Pts   = 300;   // SMC OTE Fib tolerance pts
+input int    SMC_SL_Buffer_Pts = 105;   // SMC champion SL buffer pts
+input int    SMC_Fib_Tol_Pts   = 400;   // SMC champion OTE Fib tolerance pts
 input int    SMC_Scan_Window    = 80;    // SMC Scan window (inert per research)
 input double SMC_SL_Mult        = 0.5;   // SMC SL multiplier (0.5 = half SL)
-input bool   SMC_Use_H4_Filter  = true;  // SMC H4 EMA trend filter ON/OFF
+input bool   SMC_Use_H4_Filter  = false; // SMC champion: H4 EMA filter OFF
 input int    SMC_H4_Fast_EMA    = 50;    // SMC H4 fast EMA period
 input int    SMC_H4_Slow_EMA    = 200;   // SMC H4 slow EMA period
-input int    SMC_Trail_Start    = 2000;  // SMC trail activation pts
-input int    SMC_Trail_Dist     = 1500;  // SMC trail distance pts
-input int    SMC_Trail_Step     = 500;   // SMC trail step pts
-input int    SMC_Max_SL_Pts     = 5000;  // SMC max single-trade SL pts (5000=off; recommend 400-1500)
+input int    SMC_Trail_Start    = 50000; // SMC champion: trail effectively OFF
+input int    SMC_Trail_Dist     = 50000; // SMC champion: trail effectively OFF
+input int    SMC_Trail_Step     = 1000;  // SMC champion trail step
+input int    SMC_Max_SL_Pts     = 400;   // SMC champion max single-trade SL pts
 // --- v1.13 entry relaxation ---
-input double SMC_OTE_Level1     = 0.705; // SMC OTE upper fib (relax: 0.5)
-input double SMC_OTE_Level2     = 0.786; // SMC OTE lower fib (relax: 0.9)
-input bool   SMC_Require_FVG    = true;  // SMC require FVG (false=relax)
+input double SMC_OTE_Level1     = 0.382; // SMC champion OTE upper fib
+input double SMC_OTE_Level2     = 0.886; // SMC champion OTE lower fib
+input bool   SMC_Require_FVG    = false; // SMC champion: FVG relaxed
 // --- v1.13 KDJ momentum filter ---
-input bool   SMC_Use_KDJ_Filter = false; // SMC KDJ filter ON/OFF
+input bool   SMC_Use_KDJ_Filter = true;  // SMC champion: KDJ filter ON
 input int    SMC_KDJ_Period     = 7;     // SMC KDJ period
 input int    SMC_KDJ_Smooth_D   = 2;     // SMC KDJ smooth D
 input int    SMC_KDJ_Smooth_S   = 2;     // SMC KDJ smooth S
 input int    SMC_KDJ_OB         = 70;    // SMC KDJ overbought (blocks longs)
 input int    SMC_KDJ_OS         = 30;    // SMC KDJ oversold (blocks shorts)
 // --- v1.13 ADX trend-strength filter ---
-input bool   SMC_Use_ADX_Filter = false; // SMC ADX filter ON/OFF
+input bool   SMC_Use_ADX_Filter = true;  // SMC champion: ADX filter ON
 input int    SMC_ADX_Period     = 14;    // SMC ADX period
-input double SMC_ADX_Min        = 20.0;  // SMC ADX min (ADX below this = ranging, block)
+input double SMC_ADX_Min        = 30.0;  // SMC champion ADX min
 // --- v1.14 textbook H4 BOS direction filter ---
 input bool   SMC_Use_H4_BOS_Filter = false; // SMC H4 BOS filter (only trade with H4 BOS direction)
 input int    SMC_H4_BOS_Lookback   = 50;    // SMC H4 BOS lookback bars (50 ~ 8 days)
 // --- v1.15 Kelly Path B cherry-picks: session + fixed R:R + breakeven ---
-input bool   SMC_Use_Session_Filter = false; // SMC session filter (London/NY only)
+input bool   SMC_Use_Session_Filter = true;  // SMC champion session filter ON
 input int    SMC_Session1_Start    = 9;     // SMC London session start hour (server time)
 input int    SMC_Session1_End      = 12;    // SMC London session end hour (exclusive)
 input int    SMC_Session2_Start    = 14;    // SMC NY session start hour
