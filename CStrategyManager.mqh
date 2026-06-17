@@ -190,6 +190,7 @@ public:
                         
                         // 1. 全局风控自检：净值回撤 20% 红线检测
                         m_risk_mgr.CheckEmergencyStop(m_pos_mgr);
+                        bool commercial_risk_ok = m_risk_mgr.CheckCommercialRiskGuards(m_pos_mgr);
 
                         // 2. 全局限流令：控制总持仓单量 (上限 6 单)
                         bool is_global_full = (PositionsTotal() >= 6);
@@ -207,6 +208,8 @@ public:
 
                            // --- B. 进攻权限预审 ---
                            if(currentRegime == REGIME_DANGER_ZONE || is_global_full) continue;
+                           if(!commercial_risk_ok) continue;
+                           if(!m_risk_mgr.IsTradeEnvironmentSafe(_Symbol)) continue;
                            if(!IsCommercialEntryTimeAllowed()) continue;
 
                            string name = m_strategies[i].GetName();

@@ -142,6 +142,23 @@ input int    Premium_Window_Start_Hour  = 15;    // Silver Bullet window start
 input int    Premium_Window_End_Hour    = 16;    // Silver Bullet window end
 // ======================================================================
 
+// ======================================================================
+// Commercial risk and execution controls (default = current behavior)
+// ======================================================================
+input bool   Is_Cent_Account              = false; // Account type flag
+input int    Max_Spread_Pts               = 400;   // Max spread allowed for entries
+input double Base_Risk_Pct                = 0.02;  // Base risk percent
+input double Max_Floating_Drawdown_Pct    = 0.20;  // Emergency floating DD close
+input bool   Use_Commercial_Risk_Guards   = false; // Daily/peak guard master switch
+input double Daily_Loss_Guard_Pct         = 0.04;  // Pause after 4% daily equity loss
+input double Peak_Equity_DD_Guard_Pct     = 0.10;  // Pause after 10% drop from peak equity
+input bool   Persist_Risk_Pause           = true;  // Keep pause after restart
+input bool   Reset_Risk_Pause             = false; // One-time reset for persisted pause
+input int    Grid_Breakeven_Pts           = 150;   // Grid breakeven exit pts
+input int    Grid_Spacing_Pts             = 1000;  // Grid layer spacing pts
+input int    Max_Grid_Layers              = 10;    // Set 1 for prop/no-grid mode
+// ======================================================================
+
 CStrategyManager *StrategyMgr;
 CRiskManager     *RiskMgr;
 CPositionManager *PosMgr;
@@ -151,8 +168,18 @@ CPositionManager *PosMgr;
 //+------------------------------------------------------------------+
 int OnInit()
   {
-   RiskMgr = new CRiskManager(false, 400, 0.02);
-   PosMgr  = new CPositionManager();
+   RiskMgr = new CRiskManager(
+      Is_Cent_Account,
+      Max_Spread_Pts,
+      Base_Risk_Pct,
+      Max_Floating_Drawdown_Pct,
+      Use_Commercial_Risk_Guards,
+      Daily_Loss_Guard_Pct,
+      Peak_Equity_DD_Guard_Pct,
+      Persist_Risk_Pause,
+      Reset_Risk_Pause
+   );
+   PosMgr  = new CPositionManager(Grid_Breakeven_Pts, Grid_Spacing_Pts, Max_Grid_Layers);
    StrategyMgr = new CStrategyManager(
       RiskMgr,
       PosMgr,

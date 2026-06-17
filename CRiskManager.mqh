@@ -14,15 +14,76 @@ private:
    int               m_max_spread_pts;  // 黄金允许的最大点差 (Points)
    double            m_max_risk_pct;    // 单次开仓最大风险百分比
    double            m_max_drawdown_pct;// 极限回撤断臂线
+   bool              m_use_commercial_guards;
+   double            m_daily_loss_guard_pct;
+   double            m_peak_drawdown_guard_pct;
+   bool              m_persist_risk_pause;
+   bool              m_is_risk_paused;
+   int               m_day_key;
+   double            m_day_start_equity;
+   double            m_peak_equity;
+
+   int               CurrentDayKey(void)
+                     {
+                        MqlDateTime time;
+                        TimeToStruct(TimeCurrent(), time);
+                        return time.year * 1000 + time.day_of_year;
+                     }
+
+   string            PauseGlobalName(void)
+                     {
+                        return "QuantumKing_RiskPause_" + IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN));
+                     }
+
+   void              SetRiskPaused(string reason)
+                     {
+                        m_is_risk_paused = true;
+                        if(m_persist_risk_pause)
+                           GlobalVariableSet(PauseGlobalName(), 1.0);
+                        Print("🚨 [Commercial Guard] Trading paused: ", reason);
+                     }
+
+   void              ResetDailyBaselineIfNeeded(void)
+                     {
+                        int current_day = CurrentDayKey();
+                        if(current_day == m_day_key) return;
+
+                        m_day_key = current_day;
+                        m_day_start_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+                        if(!m_persist_risk_pause)
+                           m_is_risk_paused = false;
+                     }
 
 public:
                      // 默认关闭美分账户(使用标准USD)，黄金点差限制400点，风控红线20%
-                     CRiskManager(bool isCentAccount = false, int maxSpreadPts = 400, double maxRiskPct = 0.02, double maxDrawdownPct = 0.20)
+                     CRiskManager(bool isCentAccount = false,
+                                  int maxSpreadPts = 400,
+                                  double maxRiskPct = 0.02,
+                                  double maxDrawdownPct = 0.20,
+                                  bool useCommercialGuards = false,
+                                  double dailyLossGuardPct = 0.04,
+                                  double peakDrawdownGuardPct = 0.10,
+                                  bool persistRiskPause = true,
+                                  bool resetRiskPause = false)
                      {
                         m_is_cent_account = isCentAccount;
                         m_max_spread_pts = maxSpreadPts;
                         m_max_risk_pct = maxRiskPct;
                         m_max_drawdown_pct = maxDrawdownPct;
+                        m_use_commercial_guards = useCommercialGuards;
+                        m_daily_loss_guard_pct = dailyLossGuardPct;
+                        m_peak_drawdown_guard_pct = peakDrawdownGuardPct;
+                        m_persist_risk_pause = persistRiskPause;
+                        m_is_risk_paused = false;
+                        m_day_key = CurrentDayKey();
+                        m_day_start_equity = AccountInfoDouble(ACCOUNT_EQUITY);
+                        m_peak_equity = m_day_start_equity;
+
+                        if(resetRiskPause && GlobalVariableCheck(PauseGlobalName()))
+                           GlobalVariableDel(PauseGlobalName());
+
+                        if(m_persist_risk_pause && GlobalVariableCheck(PauseGlobalName()))
+                           m_is_risk_paused = (GlobalVariableGet(PauseGlobalName()) > 0.0);
                      }
                     ~CRiskManager(void) {}
 
@@ -109,6 +170,47 @@ public:
                            Print("🚨🚨🚨 [警报] 触发终极安全气囊！当前浮亏: $", floating_loss, "，占账户 ", drawdown_pct*100, "%！强制执行全仓平仓！");
                            posMgr.EmergencyCloseAll();
                           }
+                     }
+
+   //========================================================================
+   // 4. Commercial risk guards: daily loss + peak equity protection
+   //========================================================================
+   bool              CheckCommercialRiskGuards(CPositionManager *posMgr)
+                     {
+                        if(!m_use_commercial_guards) return true;
+
+                        ResetDailyBaselineIfNeeded();
+
+                        double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+                        if(equity > m_peak_equity)
+                           m_peak_equity = equity;
+
+                        if(m_is_risk_paused)
+                           return false;
+
+                        if(m_day_start_equity > 0.0)
+                          {
+                           double daily_dd = (m_day_start_equity - equity) / m_day_start_equity;
+                           if(daily_dd >= m_daily_loss_guard_pct)
+                             {
+                              posMgr.EmergencyCloseAll();
+                              SetRiskPaused("daily loss guard");
+                              return false;
+                             }
+                          }
+
+                        if(m_peak_equity > 0.0)
+                          {
+                           double peak_dd = (m_peak_equity - equity) / m_peak_equity;
+                           if(peak_dd >= m_peak_drawdown_guard_pct)
+                             {
+                              posMgr.EmergencyCloseAll();
+                              SetRiskPaused("peak equity drawdown guard");
+                              return false;
+                             }
+                          }
+
+                        return true;
                      }
   };
 //+------------------------------------------------------------------+
