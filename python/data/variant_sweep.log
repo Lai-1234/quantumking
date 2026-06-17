@@ -1,0 +1,148 @@
+[1/10] MA_Trend variants...
+[2/10] MACD_Momentum variants...
+[3/10] SMC_OrderBlock variants...
+[4/10] ADX_Trend variants...
+[5/10] Asian_Breakout variants...
+[6/10] Fractal_Breakout variants...
+[7/10] Pulse_Momentum variants...
+[8/10] Bands_Extreme variants...
+[9/10] Pivot_Divergence variants...
+[10/10] VWAP_Reversion variants...
+
+Total variants tested: 4248
+
+==================================================================================================================================
+
+### TOP 10 — MA_Trend
+strategy   mtf  exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+MA_Trend H1+H4 trail_only      1.0 1400/1400/300     150       0     224 1.894  25361.0      78.1      -18.89    1.30  1.536
+MA_Trend H1+H4 trail_only      1.5 1400/1400/300     150       0     224 1.894  25361.0      78.1      -18.89    1.30  1.536
+MA_Trend H1+H4 trail_only      2.0 1400/1400/300     150       0     224 1.894  25361.0      78.1      -18.89    1.30  1.536
+MA_Trend H1+H4 trail_only      0.5 1400/1400/300     150       0     224 1.894  25361.0      78.1      -18.89    1.30  1.536
+MA_Trend H1+H4   sl_trail      0.5 2000/1500/500     150       0     350 1.654  11084.0      20.0      -11.48    1.11  1.464
+MA_Trend H1+H4 trail_only      2.0 1400/1400/100     150       0     225 1.846  23427.0      77.8      -20.91    1.25  1.460
+MA_Trend H1+H4 trail_only      0.5 1400/1400/100     150       0     225 1.846  23427.0      77.8      -20.91    1.25  1.460
+MA_Trend H1+H4 trail_only      1.0 1400/1400/100     150       0     225 1.846  23427.0      77.8      -20.91    1.25  1.460
+MA_Trend H1+H4 trail_only      1.5 1400/1400/100     150       0     225 1.846  23427.0      77.8      -20.91    1.25  1.460
+MA_Trend H1+H4   sl_trail      0.5 1400/1400/300     150       0     362 1.564   8593.0      22.9      -10.40    1.01  1.401
+
+### TOP 10 — MACD_Momentum
+     strategy   mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+MACD_Momentum H1+H4   sl_only      2.0    300/150/50     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum H1+H4   sl_only      2.0 2000/1500/500     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum H1+H4   sl_only      2.0 1400/1400/300     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum H1+H4   sl_only      2.0 1400/1400/100     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum H1+H4   sl_only      2.0 1000/1000/200     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum H1+H4   sl_only      2.0   500/500/100     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum  none   sl_only      2.0 1400/1400/100     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum  none   sl_only      2.0 1400/1400/300     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum  none   sl_only      2.0    300/150/50     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+MACD_Momentum  none   sl_only      2.0 2000/1500/500     150       0     152 1.654  16201.0      44.1      -23.65    0.83  1.101
+
+### TOP 10 — SMC_OrderBlock
+      strategy   mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+SMC_OrderBlock H1+H4  sl_trail      0.5 2000/1500/500     150       0     176 1.819   4073.0      18.2       -7.65    0.77  1.576
+SMC_OrderBlock    H4  sl_trail      0.5 2000/1500/500     150       0     236 1.673   4298.0      15.7       -8.81    0.74  1.525
+SMC_OrderBlock    H1  sl_trail      0.5 2000/1500/500     150       0     247 1.634   4162.0      15.8       -7.89    0.75  1.505
+SMC_OrderBlock H1+H4  sl_trail      1.0 2000/1500/500     150       0     161 1.631   5054.0      28.0      -11.29    0.80  1.298
+SMC_OrderBlock    H4  sl_trail      1.0 2000/1500/500     150       0     214 1.446   4577.0      25.2      -13.53    0.68  1.250
+SMC_OrderBlock  none  sl_trail      0.5 2000/1500/500     150       0     434 1.374   3803.0      12.2      -10.18    0.61  1.234
+SMC_OrderBlock    H1  sl_trail      0.5 1400/1400/300     150       0     249 1.339   1964.0      17.3       -8.07    0.48  1.231
+SMC_OrderBlock    H4  sl_trail      0.5 1400/1400/300     150       0     238 1.324   1854.0      17.2       -9.74    0.43  1.195
+SMC_OrderBlock    H1  sl_trail      0.5 1400/1400/100     150       0     250 1.300   1742.0      17.6       -8.23    0.46  1.193
+SMC_OrderBlock    H4  sl_trail      0.5 1400/1400/100     150       0     239 1.315   1812.0      17.6       -9.79    0.45  1.186
+
+### TOP 10 — ADX_Trend
+ strategy   mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+ADX_Trend H1+H4   sl_only      0.5 1000/1000/200     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      0.5   500/500/100     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      0.5    300/150/50     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      0.5 2000/1500/500     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      0.5 1400/1400/300     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      0.5 1400/1400/100     150       0     188 3.276  33092.0      20.7      -17.75    1.01  2.612
+ADX_Trend H1+H4   sl_only      1.0 1000/1000/200     150       0     160 2.875  38810.0      33.1      -11.40    1.06  2.279
+ADX_Trend H1+H4   sl_only      1.0   500/500/100     150       0     160 2.875  38810.0      33.1      -11.40    1.06  2.279
+ADX_Trend H1+H4   sl_only      1.0 2000/1500/500     150       0     160 2.875  38810.0      33.1      -11.40    1.06  2.279
+ADX_Trend H1+H4   sl_only      1.0    300/150/50     150       0     160 2.875  38810.0      33.1      -11.40    1.06  2.279
+
+### TOP 10 — Asian_Breakout
+      strategy  mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+Asian_Breakout none   sl_only      1.0    300/150/50     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout none   sl_only      1.0   500/500/100     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout none   sl_only      1.0 2000/1500/500     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout none   sl_only      1.0 1400/1400/300     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout none   sl_only      1.0 1000/1000/200     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout none   sl_only      1.0 1400/1400/100     150       0     184 1.832   7716.0      13.0      -18.97    0.50  1.424
+Asian_Breakout   H1   sl_only      1.0 1400/1400/100     150       0      97 1.883   3573.0      10.3      -14.16    0.37  1.126
+Asian_Breakout   H1   sl_only      1.0    300/150/50     150       0      97 1.883   3573.0      10.3      -14.16    0.37  1.126
+Asian_Breakout   H1   sl_only      1.0 1400/1400/300     150       0      97 1.883   3573.0      10.3      -14.16    0.37  1.126
+Asian_Breakout   H1   sl_only      1.0 2000/1500/500     150       0      97 1.883   3573.0      10.3      -14.16    0.37  1.126
+
+### TOP 10 — Fractal_Breakout
+        strategy   mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+Fractal_Breakout H1+H4   sl_only      2.0    300/150/50     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      2.0 2000/1500/500     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      2.0 1400/1400/300     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      2.0 1400/1400/100     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      2.0   500/500/100     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      2.0 1000/1000/200     150       0     259 2.013  56542.0      35.1      -26.23    0.96  1.485
+Fractal_Breakout H1+H4   sl_only      0.5   500/500/100     150       0     460 1.851  28219.0      12.2      -21.15    0.79  1.459
+Fractal_Breakout H1+H4   sl_only      0.5 1000/1000/200     150       0     460 1.851  28219.0      12.2      -21.15    0.79  1.459
+Fractal_Breakout H1+H4   sl_only      0.5 1400/1400/100     150       0     460 1.851  28219.0      12.2      -21.15    0.79  1.459
+Fractal_Breakout H1+H4   sl_only      0.5 2000/1500/500     150       0     460 1.851  28219.0      12.2      -21.15    0.79  1.459
+
+### TOP 10 — Pulse_Momentum
+      strategy  mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+Pulse_Momentum none  sl_trail      2.0 2000/1500/500     150       0     794 0.935  -2073.0      47.6      -25.57   -0.06  0.696
+Pulse_Momentum   H4  sl_trail      2.0   500/500/100     150       0     462 0.858  -2020.0      65.8      -21.65   -0.12  0.672
+Pulse_Momentum   H4   sl_only      1.0 1400/1400/100     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4   sl_only      1.0 1000/1000/200     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4   sl_only      1.0 1400/1400/300     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4   sl_only      1.0   500/500/100     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4   sl_only      1.0    300/150/50     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4   sl_only      1.0 2000/1500/500     150       0     412 0.862  -2005.0      30.8      -22.14   -0.11  0.671
+Pulse_Momentum   H4  sl_trail      1.0   500/500/100     150       0     530 0.847  -2037.0      52.5      -21.82   -0.15  0.663
+Pulse_Momentum none   sl_only      2.0   500/500/100     150       0    1676 0.972  -2081.0      46.3      -31.81   -0.03  0.663
+
+### TOP 10 — Bands_Extreme
+     strategy  mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+Bands_Extreme none  sl_trail      0.5   500/500/100     100       0      12 0.232   -478.0      25.0       -5.12   -0.83   -1.0
+Bands_Extreme none  sl_trail      0.5   500/500/100     150       0      12 0.232   -478.0      25.0       -5.12   -0.83   -1.0
+Bands_Extreme none  sl_trail      0.5   500/500/100     200       0      12 0.232   -478.0      25.0       -5.12   -0.83   -1.0
+Bands_Extreme none  sl_trail      0.5   500/500/100     300       0      12 0.232   -478.0      25.0       -5.12   -0.83   -1.0
+Bands_Extreme none  sl_trail      0.5 1000/1000/200     100       0      12 0.109   -608.0      16.7       -6.08   -1.10   -1.0
+Bands_Extreme none  sl_trail      0.5 1000/1000/200     150       0      12 0.109   -608.0      16.7       -6.08   -1.10   -1.0
+Bands_Extreme none  sl_trail      0.5 1000/1000/200     200       0      12 0.109   -608.0      16.7       -6.08   -1.10   -1.0
+Bands_Extreme none  sl_trail      0.5 1000/1000/200     300       0      12 0.109   -608.0      16.7       -6.08   -1.10   -1.0
+Bands_Extreme none  sl_trail      0.5 1400/1400/100     100       0      12 0.062   -640.0      16.7       -6.40   -1.20   -1.0
+Bands_Extreme none  sl_trail      0.5 1400/1400/100     150       0      12 0.062   -640.0      16.7       -6.40   -1.20   -1.0
+
+### TOP 10 — Pivot_Divergence
+        strategy mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/300     300       0     312 1.008    175.0      51.6      -19.28    0.08  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/300     200       0     312 1.008    175.0      51.6      -19.28    0.08  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/300     150       0     312 1.008    175.0      51.6      -19.28    0.08  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/300     100       0     312 1.008    175.0      51.6      -19.28    0.08  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/100     100       0     313 1.013    310.0      52.1      -19.70    0.10  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/100     150       0     313 1.013    310.0      52.1      -19.70    0.10  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/100     200       0     313 1.013    310.0      52.1      -19.70    0.10  0.813
+Pivot_Divergence  H1  sl_trail      1.0 1400/1400/100     300       0     313 1.013    310.0      52.1      -19.70    0.10  0.813
+Pivot_Divergence  H1   sl_only      1.0 2000/1500/500     300       0     257 1.076   2466.0      26.8      -27.42    0.28  0.781
+Pivot_Divergence  H1   sl_only      1.0 2000/1500/500     200       0     257 1.076   2466.0      26.8      -27.42    0.28  0.781
+
+### TOP 10 — VWAP_Reversion
+      strategy mtf exit_mode  sl_mult         trail  be_pts  tp_pts  trades    pf  net_pnl  win_rate  max_dd_pct  sharpe  score
+VWAP_Reversion  H1   be_only      2.0    300/150/50     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      2.0 1000/1000/200     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      2.0 1400/1400/300     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      2.0 2000/1500/500     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      1.5 2000/1500/500     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      1.5 1400/1400/300     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      1.5    300/150/50     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      2.0 1400/1400/100     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      2.0   500/500/100     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+VWAP_Reversion  H1   be_only      0.5   500/500/100     150       0     486 1.464   2277.0      97.3       -7.54    0.61  1.354
+
+==================================================================================================================================
+
+Saved variant_top10_per_strategy.csv (100 rows)
