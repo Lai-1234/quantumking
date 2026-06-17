@@ -107,6 +107,25 @@ input bool   SMC_Use_Trail_With_RR = false; // SMC trail+R:R hybrid (captures mi
 // ======================================================================
 
 // ======================================================================
+// ADX_Trend tunable research inputs (strategy disabled by default)
+// ======================================================================
+input int    ADX_Period             = 14;    // ADX period
+input double ADX_Threshold          = 25.0;  // ADX strength threshold
+input int    ADX_SL_Buffer_Pts      = 150;   // Structure SL buffer pts
+input int    ADX_Max_SL_Pts         = 0;     // 0 = no cap, >0 caps structure SL
+input int    ADX_TP_Pts             = 10000; // Take-profit pts
+input int    ADX_Trail_Start_Pts    = 1000;  // Trail activation pts
+input int    ADX_Trail_Dist_Pts     = 1000;  // Trail distance pts
+input int    ADX_Trail_Step_Pts     = 500;   // Trail step pts
+input bool   ADX_Use_H1_Filter      = false; // H1 EMA alignment filter
+input bool   ADX_Use_H4_Filter      = false; // H4 EMA alignment filter
+input int    ADX_H1_Fast_EMA        = 50;    // H1 fast EMA
+input int    ADX_H1_Slow_EMA        = 200;   // H1 slow EMA
+input int    ADX_H4_Fast_EMA        = 50;    // H4 fast EMA
+input int    ADX_H4_Slow_EMA        = 200;   // H4 slow EMA
+// ======================================================================
+
+// ======================================================================
 // Commercial global entry-time filters (default OFF = current behavior)
 // ======================================================================
 input bool   Use_Commercial_Time_Filter = false; // Master switch for new-entry time filters
@@ -237,7 +256,29 @@ int OnInit()
 
    //StrategyMgr.AddStrategy(new CStrategy_Asian_Breakout("亚盘顺势", 10003, 1.0, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_MACD_Momentum("MACD顺势", 10004, 1.0, _Symbol, PERIOD_M15));
-   //StrategyMgr.AddStrategy(new CStrategy_ADX_Trend("ADX顺势", 10005, 1.0, _Symbol, PERIOD_M15));
+   /* ===== ADX tunable disabled; enable for ADX solo/pair testing =====
+   StrategyMgr.AddStrategy(new CStrategy_ADX_Trend(
+      "ADX顺势",
+      10005,
+      1.0,
+      _Symbol,
+      PERIOD_M15,
+      ADX_Period,
+      ADX_Threshold,
+      ADX_SL_Buffer_Pts,
+      ADX_Max_SL_Pts,
+      ADX_TP_Pts,
+      ADX_Trail_Start_Pts,
+      ADX_Trail_Dist_Pts,
+      ADX_Trail_Step_Pts,
+      ADX_Use_H1_Filter,
+      ADX_Use_H4_Filter,
+      ADX_H1_Fast_EMA,
+      ADX_H1_Slow_EMA,
+      ADX_H4_Fast_EMA,
+      ADX_H4_Slow_EMA
+   ));
+   ==================================================================== */
    //StrategyMgr.AddStrategy(new CStrategy_Pivot_Divergence("枢轴点回归", 10006, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_VWAP_Reversion("VWAP回归", 10007, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_Fractal_Breakout("碎形顺势", 10008, 1.0, _Symbol, PERIOD_M15));
