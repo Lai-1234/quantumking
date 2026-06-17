@@ -106,6 +106,23 @@ input int    SMC_BE_Trigger_Pts    = 500;   // SMC BE trigger pts (Kelly: ~1:3 r
 input bool   SMC_Use_Trail_With_RR = false; // SMC trail+R:R hybrid (captures mid-flight profit when TP too far)
 // ======================================================================
 
+// ======================================================================
+// Commercial global entry-time filters (default OFF = current behavior)
+// ======================================================================
+input bool   Use_Commercial_Time_Filter = false; // Master switch for new-entry time filters
+input bool   Block_Monday_New_Entries   = true;  // Block new entries on Monday
+input bool   Block_Friday_Late_Entries  = true;  // Block new entries late Friday
+input int    Friday_Block_Hour          = 14;    // Server hour to stop Friday entries
+input bool   Use_Global_Session_Filter  = false; // Restrict new entries to two sessions
+input int    Session1_Start_Hour        = 9;     // London window start
+input int    Session1_End_Hour          = 12;    // London window end
+input int    Session2_Start_Hour        = 14;    // NY window start
+input int    Session2_End_Hour          = 17;    // NY window end
+input bool   Use_Premium_Window_Filter  = false; // Restrict new entries to premium window
+input int    Premium_Window_Start_Hour  = 15;    // Silver Bullet window start
+input int    Premium_Window_End_Hour    = 16;    // Silver Bullet window end
+// ======================================================================
+
 CStrategyManager *StrategyMgr;
 CRiskManager     *RiskMgr;
 CPositionManager *PosMgr;
@@ -117,7 +134,22 @@ int OnInit()
   {
    RiskMgr = new CRiskManager(false, 400, 0.02);
    PosMgr  = new CPositionManager();
-   StrategyMgr = new CStrategyManager(RiskMgr, PosMgr);
+   StrategyMgr = new CStrategyManager(
+      RiskMgr,
+      PosMgr,
+      Use_Commercial_Time_Filter,
+      Block_Monday_New_Entries,
+      Block_Friday_Late_Entries,
+      Friday_Block_Hour,
+      Use_Global_Session_Filter,
+      Session1_Start_Hour,
+      Session1_End_Hour,
+      Session2_Start_Hour,
+      Session2_End_Hour,
+      Use_Premium_Window_Filter,
+      Premium_Window_Start_Hour,
+      Premium_Window_End_Hour
+   );
 
  /* =================================================================
    StrategyMgr.AddStrategy(new CStrategy_Bands_Extreme(

@@ -25,6 +25,18 @@ private:
    int               m_atr_slow_handle; 
 
    bool              m_is_manual_paused; 
+   bool              m_use_commercial_time_filter;
+   bool              m_block_monday_entries;
+   bool              m_block_friday_late_entries;
+   int               m_friday_block_hour;
+   bool              m_use_global_session_filter;
+   int               m_session1_start;
+   int               m_session1_end;
+   int               m_session2_start;
+   int               m_session2_end;
+   bool              m_use_premium_window_filter;
+   int               m_premium_window_start;
+   int               m_premium_window_end;
 
    // --- 内部辅助：识别哪些是需要靠网格自救的“重装步兵” ---
    bool IsGridStrategy(int magicNumber)
@@ -54,14 +66,73 @@ private:
       return false;
    }
 
+   bool IsHourInRange(int hour, int startHour, int endHour)
+   {
+      if(startHour == endHour) return true;
+      if(startHour < endHour)
+         return (hour >= startHour && hour < endHour);
+      return (hour >= startHour || hour < endHour);
+   }
+
+   bool IsCommercialEntryTimeAllowed(void)
+   {
+      if(!m_use_commercial_time_filter) return true;
+
+      MqlDateTime time;
+      TimeToStruct(TimeCurrent(), time);
+
+      if(m_block_monday_entries && time.day_of_week == 1)
+         return false;
+
+      if(m_block_friday_late_entries && time.day_of_week == 5 && time.hour >= m_friday_block_hour)
+         return false;
+
+      if(m_use_premium_window_filter)
+         return IsHourInRange(time.hour, m_premium_window_start, m_premium_window_end);
+
+      if(m_use_global_session_filter)
+        {
+         bool in_session1 = IsHourInRange(time.hour, m_session1_start, m_session1_end);
+         bool in_session2 = IsHourInRange(time.hour, m_session2_start, m_session2_end);
+         return (in_session1 || in_session2);
+        }
+
+      return true;
+   }
+
 public:
-                     CStrategyManager(CRiskManager *riskMgr, CPositionManager *posMgr) 
+                     CStrategyManager(CRiskManager *riskMgr,
+                                      CPositionManager *posMgr,
+                                      bool useCommercialTimeFilter = false,
+                                      bool blockMondayEntries = true,
+                                      bool blockFridayLateEntries = true,
+                                      int fridayBlockHour = 14,
+                                      bool useGlobalSessionFilter = false,
+                                      int session1Start = 9,
+                                      int session1End = 12,
+                                      int session2Start = 14,
+                                      int session2End = 17,
+                                      bool usePremiumWindowFilter = false,
+                                      int premiumWindowStart = 15,
+                                      int premiumWindowEnd = 16) 
                      { 
                         m_strategy_count = 0; 
                         m_risk_mgr = riskMgr;
                         m_pos_mgr = posMgr;
                         
                         m_is_manual_paused = false; 
+                        m_use_commercial_time_filter = useCommercialTimeFilter;
+                        m_block_monday_entries = blockMondayEntries;
+                        m_block_friday_late_entries = blockFridayLateEntries;
+                        m_friday_block_hour = fridayBlockHour;
+                        m_use_global_session_filter = useGlobalSessionFilter;
+                        m_session1_start = session1Start;
+                        m_session1_end = session1End;
+                        m_session2_start = session2Start;
+                        m_session2_end = session2End;
+                        m_use_premium_window_filter = usePremiumWindowFilter;
+                        m_premium_window_start = premiumWindowStart;
+                        m_premium_window_end = premiumWindowEnd;
 
                         m_atr_fast_handle = iATR(_Symbol, PERIOD_M15, 7);
                         m_atr_slow_handle = iATR(_Symbol, PERIOD_M15, 50);
@@ -136,6 +207,7 @@ public:
 
                            // --- B. 进攻权限预审 ---
                            if(currentRegime == REGIME_DANGER_ZONE || is_global_full) continue;
+                           if(!IsCommercialEntryTimeAllowed()) continue;
 
                            string name = m_strategies[i].GetName();
                            int magic = m_strategies[i].GetMagicNumber(); // 确保 CStrategy.mqh 有此方法
