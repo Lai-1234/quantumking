@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2026, Lai Si Xiang"
 #property link      "https://www.mql5.com"
-#property version   "1.40" // 最优参数版：Fast10 / Slow40 / Trail1400/100
+#property version   "1.50" // Commercial preset foundation
 
 #include "CStrategyManager.mqh"
 #include "CStrategy_Bands_Extreme.mqh"
@@ -18,6 +18,27 @@
 #include "CStrategy_Fractal_Breakout.mqh"
 #include "CStrategy_Pulse_Momentum.mqh"
 #include "CStrategy_SMC_OrderBlock.mqh"
+
+enum ENUM_QK_RUNTIME_PRESET
+  {
+   QK_PRESET_MA_ONLY = 0,
+   QK_PRESET_SMC_CHAMPION = 1,
+   QK_PRESET_MA_SMC = 2,
+   QK_PRESET_MA_SMC_ADX = 3,
+   QK_PRESET_CUSTOM = 4
+  };
+
+// ======================================================================
+// Commercial runtime preset selector
+// ======================================================================
+input ENUM_QK_RUNTIME_PRESET Runtime_Preset = QK_PRESET_MA_ONLY; // Default: safest legacy runtime
+input bool   Custom_Enable_MA_Trend        = true;  // Used only when Runtime_Preset=CUSTOM
+input bool   Custom_Enable_SMC_OrderBlock  = false; // Used only when Runtime_Preset=CUSTOM
+input bool   Custom_Enable_ADX_Trend       = false; // Used only when Runtime_Preset=CUSTOM
+input double MA_Trend_Weight               = 1.0;   // MA strategy weight
+input double SMC_OrderBlock_Weight         = 1.0;   // SMC strategy weight
+input double ADX_Trend_Weight              = 0.3;   // ADX strategy weight
+// ======================================================================
 
 // ======================================================================
 // 【MA_Trend 优化器参数区】
@@ -197,6 +218,30 @@ int OnInit()
       Premium_Window_End_Hour
    );
 
+   bool enable_ma_trend = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_MA_Trend : false;
+   bool enable_smc_orderblock = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_SMC_OrderBlock : false;
+   bool enable_adx_trend = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_ADX_Trend : false;
+
+   if(Runtime_Preset == QK_PRESET_MA_ONLY)
+     {
+      enable_ma_trend = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_SMC_CHAMPION)
+     {
+      enable_smc_orderblock = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_MA_SMC)
+     {
+      enable_ma_trend = true;
+      enable_smc_orderblock = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_MA_SMC_ADX)
+     {
+      enable_ma_trend = true;
+      enable_smc_orderblock = true;
+      enable_adx_trend = true;
+     }
+
  /* =================================================================
    StrategyMgr.AddStrategy(new CStrategy_Bands_Extreme(
       "布林带回归",
@@ -214,10 +259,12 @@ int OnInit()
    =================================================================*/
 
    // ===== Pair test mode: MA_Trend (tuned) + SMC (champion) both active =====
-   StrategyMgr.AddStrategy(new CStrategy_MA_Trend(
+   if(enable_ma_trend)
+     {
+      StrategyMgr.AddStrategy(new CStrategy_MA_Trend(
       "均线顺势",
       10002,
-      1.0,
+      MA_Trend_Weight,
       _Symbol,
       PERIOD_M15,
       Stoch_OB,
@@ -234,7 +281,8 @@ int OnInit()
       Max_SL_Pts,
       Trail_Start_Pts,
       Trail_Step_Pts
-   ));
+      ));
+     }
 
    /* ===== SMC disabled (LOCKED, do not change inputs) — re-tuning MA =====
    StrategyMgr.AddStrategy(new CStrategy_SMC_OrderBlock(
@@ -281,6 +329,52 @@ int OnInit()
    ));
    ===================================================================================== */
 
+   if(enable_smc_orderblock)
+     {
+      StrategyMgr.AddStrategy(new CStrategy_SMC_OrderBlock(
+         "SMC顺势",
+         10010,
+         SMC_OrderBlock_Weight,
+         _Symbol,
+         PERIOD_M15,
+         SMC_SL_Buffer_Pts,
+         SMC_Fib_Tol_Pts,
+         SMC_Scan_Window,
+         SMC_SL_Mult,
+         SMC_Use_H4_Filter,
+         SMC_H4_Fast_EMA,
+         SMC_H4_Slow_EMA,
+         SMC_Trail_Start,
+         SMC_Trail_Dist,
+         SMC_Trail_Step,
+         SMC_Max_SL_Pts,
+         SMC_Use_KDJ_Filter,
+         SMC_KDJ_Period,
+         SMC_KDJ_Smooth_D,
+         SMC_KDJ_Smooth_S,
+         SMC_KDJ_OB,
+         SMC_KDJ_OS,
+         SMC_Use_ADX_Filter,
+         SMC_ADX_Period,
+         SMC_ADX_Min,
+         SMC_OTE_Level1,
+         SMC_OTE_Level2,
+         SMC_Require_FVG,
+         SMC_Use_H4_BOS_Filter,
+         SMC_H4_BOS_Lookback,
+         SMC_Use_Session_Filter,
+         SMC_Session1_Start,
+         SMC_Session1_End,
+         SMC_Session2_Start,
+         SMC_Session2_End,
+         SMC_Use_Fixed_RR,
+         SMC_RR_Ratio,
+         SMC_Use_BreakEven,
+         SMC_BE_Trigger_Pts,
+         SMC_Use_Trail_With_RR
+      ));
+     }
+
    //StrategyMgr.AddStrategy(new CStrategy_Asian_Breakout("亚盘顺势", 10003, 1.0, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_MACD_Momentum("MACD顺势", 10004, 1.0, _Symbol, PERIOD_M15));
    /* ===== ADX tunable disabled; enable for ADX solo/pair testing =====
@@ -306,6 +400,31 @@ int OnInit()
       ADX_H4_Slow_EMA
    ));
    ==================================================================== */
+
+   if(enable_adx_trend)
+     {
+      StrategyMgr.AddStrategy(new CStrategy_ADX_Trend(
+         "ADX顺势",
+         10005,
+         ADX_Trend_Weight,
+         _Symbol,
+         PERIOD_M15,
+         ADX_Period,
+         ADX_Threshold,
+         ADX_SL_Buffer_Pts,
+         ADX_Max_SL_Pts,
+         ADX_TP_Pts,
+         ADX_Trail_Start_Pts,
+         ADX_Trail_Dist_Pts,
+         ADX_Trail_Step_Pts,
+         ADX_Use_H1_Filter,
+         ADX_Use_H4_Filter,
+         ADX_H1_Fast_EMA,
+         ADX_H1_Slow_EMA,
+         ADX_H4_Fast_EMA,
+         ADX_H4_Slow_EMA
+      ));
+     }
    //StrategyMgr.AddStrategy(new CStrategy_Pivot_Divergence("枢轴点回归", 10006, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_VWAP_Reversion("VWAP回归", 10007, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_Fractal_Breakout("碎形顺势", 10008, 1.0, _Symbol, PERIOD_M15));
