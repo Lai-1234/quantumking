@@ -29,6 +29,7 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 - `Runtime_Preset` selector now controls which strategies are loaded.
 - Default = `QK_PRESET_MA_ONLY`.
 - Locked baselines: `MA_Trend` (**PF 1.82**, DD 4.68% balance / 5.74% equity, +$1614, 476 trades) and `SMC_OrderBlock` (**PF 3.14**, DD 15.10% balance, +$954, 245 trades).
+- `QK_PRESET_ADX_ONLY` enables ADX_Trend alone for Phase 1 optimization.
 - `QK_PRESET_FTMO_CHALLENGE` forces MA + SMC, commercial time filters, commercial risk guards, London/NY sessions, and no-grid mode internally while keeping all inputs visible.
 - Account assumption remains standard USD, 400-pt max spread, 2% risk, default 20% max floating drawdown emergency stop.
 
@@ -49,7 +50,7 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 
 | File | Role |
 |---|---|
-| `quantumking.mq5` (v1.50) | Main EA. Instantiates managers, registers strategies by `Runtime_Preset`, kill-switch button, OnTick loop. Holds commercial preset, time-filter, risk-guard, MA, SMC, and ADX inputs. |
+| `quantumking.mq5` (v1.50) | Main EA. Instantiates managers, registers strategies by `Runtime_Preset`, kill-switch button, OnTick loop, and `OnTester()` commercial optimization score. Holds commercial preset, time-filter, risk-guard, MA, SMC, and ADX inputs. |
 | `CStrategyManager.mqh` (v1.30) | Orchestrator. Market-regime detection, global position cap (6), 23:00–00:00 danger-zone pause, intelligent per-magic grid lock, routes signals to strategies. |
 | `CRiskManager.mqh` (v1.10) | Spread filter, **adaptive lot sizing** (equity-based ceiling), 20% drawdown emergency close. |
 | `CPositionManager.mqh` (v1.20) | Order execution, **non-Martingale averaging grid** (1000-pt spacing, 150-pt breakeven escape, max 10 layers), trailing stop. |
@@ -236,7 +237,7 @@ SMC (Pass 0 config) paired with each candidate partner:
 ### 11.6 Roadmap
 
 1. **SMC_OrderBlock v1.16 champion is locked** — PF 3.14, DD 15.10% balance, +$954, 245 trades.
-2. **ADX_Trend tunable v1.10 is implemented.** Run Phase 1 optimization on ADX alone.
+2. **ADX_Trend tunable v1.10 is implemented.** Use `QK_PRESET_ADX_ONLY` plus `OnTester()` Custom max scoring for Phase 1 optimization.
 3. **SMC + ADX pair test in MT5** — verify projected ~PF 1.75 / DD 20%.
 4. If pair confirmed → consider adding 3rd strategy (MACD or VWAP_noGrid) to reach 300/yr.
 5. Final portfolio config = locked & shippable system.

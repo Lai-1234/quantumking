@@ -25,6 +25,7 @@ enum ENUM_QK_RUNTIME_PRESET
    QK_PRESET_SMC_CHAMPION = 1,
    QK_PRESET_MA_SMC = 2,
    QK_PRESET_MA_SMC_ADX = 3,
+   QK_PRESET_ADX_ONLY = 6,
    QK_PRESET_CUSTOM = 4,
    QK_PRESET_FTMO_CHALLENGE = 5
   };
@@ -257,6 +258,10 @@ int OnInit()
      {
       enable_ma_trend = true;
       enable_smc_orderblock = true;
+      enable_adx_trend = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_ADX_ONLY)
+     {
       enable_adx_trend = true;
      }
    else if(Runtime_Preset == QK_PRESET_FTMO_CHALLENGE)
@@ -518,5 +523,106 @@ void OnChartEvent(const int id, const long &lparam, const double &dparam, const 
         }
       ChartRedraw();
      }
+  }
+
+//+------------------------------------------------------------------+
+//| MT5 optimization criterion: commercial quality gate               |
+//+------------------------------------------------------------------+
+double CalculateTesterProfitPips()
+  {
+   if(!HistorySelect(0, TimeCurrent())) return 0.0;
+
+   long position_ids[];
+   double entry_prices[];
+   double entry_volumes[];
+   int directions[];
+   double total_pips = 0.0;
+   double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+   if(point <= 0.0) point = _Point;
+
+   int total_deals = HistoryDealsTotal();
+   for(int i = 0; i < total_deals; i++)
+     {
+      ulong ticket = HistoryDealGetTicket(i);
+      if(ticket == 0) continue;
+      if(HistoryDealGetString(ticket, DEAL_SYMBOL) != _Symbol) continue;
+
+      ENUM_DEAL_TYPE deal_type = (ENUM_DEAL_TYPE)HistoryDealGetInteger(ticket, DEAL_TYPE);
+      if(deal_type != DEAL_TYPE_BUY && deal_type != DEAL_TYPE_SELL) continue;
+
+      ENUM_DEAL_ENTRY deal_entry = (ENUM_DEAL_ENTRY)HistoryDealGetInteger(ticket, DEAL_ENTRY);
+      long position_id = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+      double price = HistoryDealGetDouble(ticket, DEAL_PRICE);
+      double volume = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+
+      int index = -1;
+      for(int j = 0; j < ArraySize(position_ids); j++)
+        {
+         if(position_ids[j] == position_id)
+           {
+            index = j;
+            break;
+           }
+        }
+
+      if(deal_entry == DEAL_ENTRY_IN)
+        {
+         int direction = (deal_type == DEAL_TYPE_BUY) ? 1 : -1;
+         if(index < 0)
+           {
+            int size = ArraySize(position_ids);
+            ArrayResize(position_ids, size + 1);
+            ArrayResize(entry_prices, size + 1);
+            ArrayResize(entry_volumes, size + 1);
+            ArrayResize(directions, size + 1);
+            position_ids[size] = position_id;
+            entry_prices[size] = price;
+            entry_volumes[size] = volume;
+            directions[size] = direction;
+           }
+         else
+           {
+            double total_volume = entry_volumes[index] + volume;
+            if(total_volume > 0.0)
+               entry_prices[index] = (entry_prices[index] * entry_volumes[index] + price * volume) / total_volume;
+            entry_volumes[index] = total_volume;
+           }
+        }
+      else if(deal_entry == DEAL_ENTRY_OUT || deal_entry == DEAL_ENTRY_INOUT || deal_entry == DEAL_ENTRY_OUT_BY)
+        {
+         if(index >= 0 && directions[index] != 0)
+           {
+            double profit_points = (price - entry_prices[index]) / point * directions[index];
+            total_pips += profit_points / 10.0;
+           }
+        }
+     }
+
+   return total_pips;
+  }
+
+double OnTester()
+  {
+   double pf = TesterStatistics(STAT_PROFIT_FACTOR);
+   double trades = TesterStatistics(STAT_TRADES);
+   double net_profit = TesterStatistics(STAT_PROFIT);
+   double balance_dd = TesterStatistics(STAT_BALANCE_DDREL_PERCENT) / 100.0;
+   double equity_dd = TesterStatistics(STAT_EQUITY_DDREL_PERCENT) / 100.0;
+   double dd = MathMax(balance_dd, equity_dd);
+   double profit_pips = CalculateTesterProfitPips();
+   double score = 0.0;
+
+   // Returns 0 if DD > 20% (commercial gate fail)
+   // Returns 0 if trades < 100 (not enough sample)
+   // Otherwise: score = PF x sqrt(trades / 200) x (1 - DD/0.20)
+   if(dd <= 0.20 && trades >= 100.0 && pf > 0.0)
+      score = pf * MathSqrt(trades / 200.0) * (1.0 - dd / 0.20);
+
+   score = MathMax(score, 0.0);
+   PrintFormat("[OnTester] score=%.4f PF=%.2f DD=%.2f%% trades=%.0f net=$%.2f profit_pips=%.1f",
+               score, pf, dd * 100.0, trades, net_profit, profit_pips);
+
+   // Higher = better. Use as "Custom max" criterion in MT5.
+   return score;
   }
 //+------------------------------------------------------------------+
