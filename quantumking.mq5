@@ -8,7 +8,6 @@
 #property version   "1.50" // Commercial preset foundation
 
 #include "CStrategyManager.mqh"
-#include "CStrategy_Bands_Extreme.mqh"
 #include "CStrategy_MA_Trend.mqh"
 #include "CStrategy_Asian_Breakout.mqh"
 #include "CStrategy_MACD_Momentum.mqh"
@@ -34,11 +33,11 @@ enum ENUM_QK_RUNTIME_PRESET
 // Commercial runtime preset selector
 // ======================================================================
 input ENUM_QK_RUNTIME_PRESET Runtime_Preset = QK_PRESET_MA_ONLY; // Default: safest legacy runtime
-input bool   Custom_Enable_MA_Trend        = true;  // Used only when Runtime_Preset=CUSTOM
-input bool   Custom_Enable_SMC_OrderBlock  = false; // Used only when Runtime_Preset=CUSTOM
-input bool   Custom_Enable_ADX_Trend       = false; // Used only when Runtime_Preset=CUSTOM
-input double MA_Trend_Weight               = 1.0;   // MA strategy weight
-input double SMC_OrderBlock_Weight         = 1.0;   // SMC strategy weight
+input bool   Custom_Enable_MA_Trend        = true;  // CUSTOM preset: enable MA_Trend
+input bool   Custom_Enable_SMC_OrderBlock  = false; // CUSTOM preset: enable SMC
+input bool   Custom_Enable_ADX_Trend       = false; // CUSTOM preset: enable ADX
+input double MA_Trend_Weight               = 1.0;   // MA strategy weight (1.0 = full)
+input double SMC_OrderBlock_Weight         = 1.0;   // SMC strategy weight (1.0 = full)
 input double ADX_Trend_Weight              = 0.3;   // ADX strategy weight
 // ======================================================================
 
@@ -49,40 +48,29 @@ input double ADX_Trend_Weight              = 0.3;   // ADX strategy weight
 // ======================================================================
 
 // --- Trend definition (tuned 2026-06-01: PF 1.82 / DD 4.68% / $1614 / 476 trades) ---
-input int    Fast_EMA_Period  = 30;     // tuned from 20
-input int    Slow_EMA_Period  = 50;     // tuned from 70
+input int    Fast_EMA_Period  = 30;     // MA: H4 fast EMA period (LOCKED: 30, was 20)
+input int    Slow_EMA_Period  = 50;     // MA: H4 slow EMA period (LOCKED: 50, was 70)
 
 // --- KDJ momentum (unchanged from original tuning) ---
-input int    KDJ_Period       = 7;
-input int    KDJ_Smooth_D     = 2;
-input int    KDJ_Smooth_S     = 2;
-input int    Stoch_OB         = 70;
-input int    Stoch_OS         = 40;
+input int    KDJ_Period       = 7;      // MA: M15 KDJ period
+input int    KDJ_Smooth_D     = 2;      // MA: KDJ smooth D
+input int    KDJ_Smooth_S     = 2;      // MA: KDJ smooth S
+input int    Stoch_OB         = 70;     // MA: Stochastic overbought
+input int    Stoch_OS         = 40;     // MA: Stochastic oversold
 
 // --- Fibonacci entry zone (tuned 2026-06-01) ---
-input double Fibo_Top         = 0.525;  // tuned from 0.5
-input double Fibo_Bottom      = 0.675;  // tuned from 0.677
-input int    Zone_Buffer_Pts  = 80;     // tuned from 150 (tighter entry zone)
+input double Fibo_Top         = 0.525;  // MA: Fibonacci upper bound (LOCKED: 0.525, was 0.5)
+input double Fibo_Bottom      = 0.675;  // MA: Fibonacci lower bound (LOCKED: 0.675, was 0.677)
+input int    Zone_Buffer_Pts  = 80;     // MA: Fib zone buffer pts (LOCKED: 80, was 150)
 
 // --- Risk / stop-loss (unchanged) ---
-input int    SL_Buffer_Pts    = 300;
-input int    Max_SL_Pts       = 800;
+input int    SL_Buffer_Pts    = 300;    // MA: SL buffer pts
+input int    Max_SL_Pts       = 800;    // MA: Max single-trade SL cap
 
 // --- Trailing exit (tuned 2026-06-01) ---
-input int    Trail_Start_Pts  = 1400;
-input int    Trail_Step_Pts   = 140;    // tuned from 100
+input int    Trail_Start_Pts  = 1400;   // MA: Trail activation pts
+input int    Trail_Step_Pts   = 140;    // MA: Trail step pts (LOCKED: 140, was 100)
 
-// ======================================================================
-// ======================================================================
-// 【Bands_Extreme 优化器参数区】
-// ======================================================================
-input int    BB_Period       = 20;     // 布林带周期
-input double BB_Dev          = 2.5;    // 布林带偏差
-input int    RSI_Period      = 14;     // RSI 周期
-input int    RSI_OB          = 80;     // RSI 超买线 (做空条件)
-input int    RSI_OS          = 20;     // RSI 超卖线 (做多条件)
-input double Shadow_Mult     = 1.5;    // 影线必须大于实体的倍数
-// ======================================================================
 // ======================================================================
 // SMC_OrderBlock — tune these in the Inputs tab (defaults = research pick)
 // ======================================================================
@@ -269,22 +257,6 @@ int OnInit()
       enable_ma_trend = true;
       enable_smc_orderblock = true;
      }
-
- /* =================================================================
-   StrategyMgr.AddStrategy(new CStrategy_Bands_Extreme(
-      "布林带回归",
-      10001,
-      0.3,
-      _Symbol,
-      PERIOD_M15,
-      BB_Period,    // 传入顶部参数
-      BB_Dev,       // 传入顶部参数
-      RSI_Period,   // 传入顶部参数
-      RSI_OB,       // 传入顶部参数
-      RSI_OS,       // 传入顶部参数
-      Shadow_Mult   // 传入顶部参数
-   ));
-   =================================================================*/
 
    // ===== Pair test mode: MA_Trend (tuned) + SMC (champion) both active =====
    if(enable_ma_trend)
