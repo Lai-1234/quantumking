@@ -15,8 +15,8 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 ## 2. Goal
 
 - **Primary**: keep the EA profitable and robust on XAUUSD M15.
-- **MA_Trend is finished and LOCKED.** Owner's MT5 real-tick baseline: **1.6 PF, 493 trades, 8.8% max DD over ~6 years** (earlier runs hit 1.77–1.83). Do not re-tune it. Touching it requires the user's explicit approval **and** a stated reason.
-- **The other strategies are still weak** — they need optimization. Per-strategy target: **~1.8 PF, ~400 trades, MaxDD ≤ 20%** (20% DD is the hard ceiling).
+- **MA_Trend is finished and LOCKED.** Owner's MT5 real-tick baseline: **PF 1.82, DD 4.68% balance / 5.74% equity, +$1614, 476 trades over ~6 years**. Do not re-tune it. Touching it requires the user's explicit approval **and** a stated reason.
+- **SMC_OrderBlock champion is locked.** Owner's MT5 real-tick baseline: **PF 3.14, DD 15.10% balance, +$954, 245 trades over ~6 years**. Other strategies still need optimization. Per-strategy target: **~1.8 PF, ~400 trades, MaxDD ≤ 20%** (20% DD is the hard ceiling).
 - **Headline deliverable** = the per-strategy one-by-one workflow in §10 (optimize one strategy at a time → top-20 shortlist → user verifies in MT5 → picks → next strategy). Always report **profit in PIPS** alongside PF. Use the cached data in `python/data/`.
 - Any system-level change must NOT degrade MA_Trend's standalone behavior.
 
@@ -119,22 +119,22 @@ The `python/` folder is an independent research pipeline (pandas/numpy/optuna ba
 
 The agreed working loop (set 2026-05-30). Optimize strategies **one at a time**, not all stacked:
 
-1. **MA_Trend** — DONE / LOCKED. Baseline 1.6 PF, 493 trades, 8.8% DD.
+1. **MA_Trend** — DONE / LOCKED. Baseline PF 1.82, DD 4.68% balance / 5.74% equity, +$1614, 476 trades.
 2. For the **next strategy**, produce a **top-20 shortlist** of parameter variants aiming for **~1.8 PF, ~400 trades, MaxDD ≤ 20%, max performance** (my judgment), with **profit in pips** shown.
 3. **Show the user the top-20.** The user backtests them one-by-one in their own MT5 and gives their picks.
 4. Once the user picks, **proceed to the next strategy.** Repeat.
 5. For each strategy I also **recommend keep (add) or drop (delete)** based on the research data in `python/data/`.
 
 ### Calibration note (important)
-- My Python **frictionless** solo numbers track the user's MT5 **PF scale**: MA_Trend best ≈ **1.657** in `pips_top200_MA_Trend.csv` vs the user's **1.6** in MT5. Use these as the **ranking guide**; the user verifies absolute PF/DD in MT5.
+- My Python **frictionless** solo numbers are only a ranking guide. The user's locked MT5 MA_Trend baseline is now **PF 1.82** after the 2026-06-01 retune; the user verifies absolute PF/DD in MT5.
 - My **cost-heavy $400** portfolio model **understates** badly (MA → 1.14 PF / 36% DD). Do NOT present those numbers as expectations. The user's broker spread is light.
 - Source files: `python/data/pips_top200_<STRATEGY>.csv` (solo, ranked by pips, ≥200 trades), `pips_all_per_strategy.csv`, `layer1_top50_full.csv`, `layer1b_top50_full.csv`.
 
 ### Strategy ranking from research (best achievable solo PF, ≥200 trades)
 | Strategy | Best PF | #cfgs ≥1.7 PF | trades | Verdict |
 |---|---:|---:|---:|---|
-| **SMC_OrderBlock** | **1.842** | 35 | 229–526 | **Optimize next (strongest)** |
-| ADX_Trend | 1.748 | 1 | ~300 | Optimize after SMC |
+| **SMC_OrderBlock** | **1.842** | 35 | 229–526 | **LOCKED champion; do not retune unless asked** |
+| ADX_Trend | 1.748 | 1 | ~300 | **Optimize next** |
 | MACD_Momentum | 1.684 | 0 | ~200 | Optimize (moderate) |
 | VWAP_Reversion_noGrid | needs check | — | ~209 | Validate (PF=99 = artifact) |
 | Pivot_Divergence_noGrid | 1.473 | 0 | ~254 | Marginal — likely drop |
@@ -142,7 +142,7 @@ The agreed working loop (set 2026-05-30). Optimize strategies **one at a time**,
 | Fractal_Breakout | 1.249 | 0 | ~342 | **Drop (weak)** |
 | Bands_Extreme_noGrid | artifact | — | 48 | **Drop (too few trades)** |
 
-Current strategy order: **SMC → ADX → MACD → (validate VWAP)**. Drop Asian, Fractal, Bands, (likely) Pivot.
+Current strategy order: **ADX → MACD → (validate VWAP)**. SMC is locked champion. Drop Asian, Fractal, Bands, (likely) Pivot.
 
 ---
 
@@ -198,13 +198,13 @@ Relaxed OTE 0.382-0.886, FVG OFF, Fib_Tol 400 → baseline 1,692 trades (286/yr)
 
 **BE conclusion:** BE@1000 is marginally best ($144 vs $141), but the improvement is tiny. BE doesn't materially help on top of Fixed R:R 1:5.
 
-#### Phase 8 — R:R ratio sweep (in progress)
-Locked Test D baseline, sweeping `SMC_R:R_ratio` ∈ {3, 4, 5, 6, 7, 8}. 6 combos, ~18 min. Hunting for the optimal R:R given gold's intraday swing distribution.
+#### Phase 8 — R:R ratio sweep (completed; see §11.8)
+This sweep led into the v1.16 SMC champion path. Final locked result is recorded in §11.9.
 
 ### 11.3 Key calibration learnings (Python ↔ MT5)
-- **MA_Trend**: Python frictionless solo ≈ 1.657 PF, user MT5 = 1.6 PF → tight match.
-- **SMC**: Python solo at $400 = 1.035 PF / 31% DD; user MT5 = 1.41 / 19.46%. **Python is conservative for SMC** (~26% PF under, ~38% DD over).
-- Rule of thumb when projecting Python pair results to MT5: multiply PF by ~1.27 and DD by ~0.62.
+- **MA_Trend**: Python frictionless solo remains useful for ranking, but the current locked user MT5 baseline is **PF 1.82** after the 2026-06-01 retune.
+- **SMC**: Python solo was conservative during early tuning; the current locked MT5 v1.16 champion is **PF 3.14 / 15.10% balance DD**.
+- Do not rely on old Python→MT5 multiplier rules for deployment. Use Python for shortlisting and the user's MT5 real-tick tester for final PF/DD.
 - **H4 EMA filter direction surprise**: Python research said H4 EMA filter was SMC's biggest PF driver. MT5 shows the opposite — **OFF beats ON**. Real-cost arithmetic favours higher trade frequency.
 - **Session filter empirical validation**: Kelly's textbook "London + NY only" rule is the single biggest PF/DD lift discovered in MT5 (PF +29%, DD -19%, profit +49% just by adding it).
 
@@ -235,12 +235,11 @@ SMC (Pass 0 config) paired with each candidate partner:
 
 ### 11.6 Roadmap
 
-1. **Phase 8 R:R sweep** finishes → pick optimal R:R + lock final Test D-style config.
-2. **Decide standalone vs portfolio path** (lock Test A or Test D).
-3. **Upgrade ADX_Trend tunable** (mirror SMC's input pattern). Run Phase 1 optimization on ADX alone.
-4. **SMC + ADX pair test in MT5** — verify projected ~PF 1.75 / DD 20%.
-5. If pair confirmed → consider adding 3rd strategy (MACD or VWAP_noGrid) to reach 300/yr.
-6. Final portfolio config = locked & shippable system.
+1. **SMC_OrderBlock v1.16 champion is locked** — PF 3.14, DD 15.10% balance, +$954, 245 trades.
+2. **ADX_Trend tunable v1.10 is implemented.** Run Phase 1 optimization on ADX alone.
+3. **SMC + ADX pair test in MT5** — verify projected ~PF 1.75 / DD 20%.
+4. If pair confirmed → consider adding 3rd strategy (MACD or VWAP_noGrid) to reach 300/yr.
+5. Final portfolio config = locked & shippable system.
 
 ### 11.7 Open questions / decisions still pending
 
