@@ -24,13 +24,13 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 
 ---
 
-## 3. Current state (as of 2026-05-30)
+## 3. Current state (as of 2026-06-20)
 
-- **Only `MA_Trend` is active.** This is the user's intended live setup.
-- `Bands_Extreme` is commented out (inside a `/* */` block in `quantumking.mq5`).
-- 8 other strategies (`Asian_Breakout`, `MACD_Momentum`, `ADX_Trend`, `Pivot_Divergence`, `VWAP_Reversion`, `Fractal_Breakout`, `Pulse_Momentum`, `SMC_OrderBlock`) are `//` commented out in `OnInit()`.
-- All 15 EA files have been verified **byte-for-byte original** (the user's hand-written code).
-- Account assumption in code: `new CRiskManager(false, 400, 0.02)` → standard USD account, 400-pt max spread, 2% risk, default 20% max drawdown.
+- `Runtime_Preset` selector now controls which strategies are loaded.
+- Default = `QK_PRESET_MA_ONLY`.
+- Locked baselines: `MA_Trend` (**PF 1.82**, DD 4.68% balance / 5.74% equity, +$1614, 476 trades) and `SMC_OrderBlock` (**PF 3.14**, DD 15.10% balance, +$954, 245 trades).
+- `QK_PRESET_FTMO_CHALLENGE` forces MA + SMC, commercial time filters, commercial risk guards, London/NY sessions, and no-grid mode internally while keeping all inputs visible.
+- Account assumption remains standard USD, 400-pt max spread, 2% risk, default 20% max floating drawdown emergency stop.
 
 ---
 
@@ -49,13 +49,14 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 
 | File | Role |
 |---|---|
-| `quantumking.mq5` (v1.40) | Main EA. Instantiates managers, registers strategies, kill-switch button, OnTick loop. Holds the MA_Trend + Bands input parameter block. |
+| `quantumking.mq5` (v1.50) | Main EA. Instantiates managers, registers strategies by `Runtime_Preset`, kill-switch button, OnTick loop. Holds commercial preset, time-filter, risk-guard, MA, SMC, and ADX inputs. |
 | `CStrategyManager.mqh` (v1.30) | Orchestrator. Market-regime detection, global position cap (6), 23:00–00:00 danger-zone pause, intelligent per-magic grid lock, routes signals to strategies. |
 | `CRiskManager.mqh` (v1.10) | Spread filter, **adaptive lot sizing** (equity-based ceiling), 20% drawdown emergency close. |
 | `CPositionManager.mqh` (v1.20) | Order execution, **non-Martingale averaging grid** (1000-pt spacing, 150-pt breakeven escape, max 10 layers), trailing stop. |
 | `CStrategy.mqh` | Base class for all strategies. |
-| `CStrategy_MA_Trend.mqh` (v3.30) | **ACTIVE strategy.** See §6. |
-| `CStrategy_*.mqh` (9 others) | Inactive strategy implementations. |
+| `CStrategy_MA_Trend.mqh` (v3.30) | Locked MA strategy. Loaded by presets. See §6. |
+| `CStrategy_ADX_Trend.mqh` (v1.10) | Tunable ADX strategy with optional H1/H4 EMA filters. Disabled unless selected by preset/custom mode. |
+| `CStrategy_*.mqh` (others) | Other strategy implementations; loaded only when registered by preset/custom code. |
 
 ### Key mechanisms
 - **Regime gate**: `ATR(7) > ATR(50) × 1.2` ⇒ `HIGH_VOL_TREND`; else `LOW_VOL_RANGE`. Strategies named "顺势" (trend) trade only in trend regime; "回归" (reversion) only in low-vol.

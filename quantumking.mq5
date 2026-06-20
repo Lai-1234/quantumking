@@ -25,7 +25,8 @@ enum ENUM_QK_RUNTIME_PRESET
    QK_PRESET_SMC_CHAMPION = 1,
    QK_PRESET_MA_SMC = 2,
    QK_PRESET_MA_SMC_ADX = 3,
-   QK_PRESET_CUSTOM = 4
+   QK_PRESET_CUSTOM = 4,
+   QK_PRESET_FTMO_CHALLENGE = 5
   };
 
 // ======================================================================
@@ -189,31 +190,48 @@ CPositionManager *PosMgr;
 //+------------------------------------------------------------------+
 int OnInit()
   {
+   bool is_ftmo_challenge = (Runtime_Preset == QK_PRESET_FTMO_CHALLENGE);
+   bool effective_use_commercial_risk_guards = is_ftmo_challenge ? true : Use_Commercial_Risk_Guards;
+   double effective_daily_loss_guard_pct = is_ftmo_challenge ? 0.04 : Daily_Loss_Guard_Pct;
+   double effective_peak_equity_dd_guard_pct = is_ftmo_challenge ? 0.10 : Peak_Equity_DD_Guard_Pct;
+   int effective_max_grid_layers = is_ftmo_challenge ? 1 : Max_Grid_Layers;
+
+   bool effective_use_commercial_time_filter = is_ftmo_challenge ? true : Use_Commercial_Time_Filter;
+   bool effective_block_monday_entries = is_ftmo_challenge ? true : Block_Monday_New_Entries;
+   bool effective_block_friday_late_entries = is_ftmo_challenge ? true : Block_Friday_Late_Entries;
+   int effective_friday_block_hour = is_ftmo_challenge ? 14 : Friday_Block_Hour;
+   bool effective_use_global_session_filter = is_ftmo_challenge ? true : Use_Global_Session_Filter;
+   int effective_session1_start_hour = is_ftmo_challenge ? 9 : Session1_Start_Hour;
+   int effective_session1_end_hour = is_ftmo_challenge ? 12 : Session1_End_Hour;
+   int effective_session2_start_hour = is_ftmo_challenge ? 14 : Session2_Start_Hour;
+   int effective_session2_end_hour = is_ftmo_challenge ? 17 : Session2_End_Hour;
+   bool effective_use_premium_window_filter = is_ftmo_challenge ? false : Use_Premium_Window_Filter;
+
    RiskMgr = new CRiskManager(
       Is_Cent_Account,
       Max_Spread_Pts,
       Base_Risk_Pct,
       Max_Floating_Drawdown_Pct,
-      Use_Commercial_Risk_Guards,
-      Daily_Loss_Guard_Pct,
-      Peak_Equity_DD_Guard_Pct,
+      effective_use_commercial_risk_guards,
+      effective_daily_loss_guard_pct,
+      effective_peak_equity_dd_guard_pct,
       Persist_Risk_Pause,
       Reset_Risk_Pause
    );
-   PosMgr  = new CPositionManager(Grid_Breakeven_Pts, Grid_Spacing_Pts, Max_Grid_Layers);
+   PosMgr  = new CPositionManager(Grid_Breakeven_Pts, Grid_Spacing_Pts, effective_max_grid_layers);
    StrategyMgr = new CStrategyManager(
       RiskMgr,
       PosMgr,
-      Use_Commercial_Time_Filter,
-      Block_Monday_New_Entries,
-      Block_Friday_Late_Entries,
-      Friday_Block_Hour,
-      Use_Global_Session_Filter,
-      Session1_Start_Hour,
-      Session1_End_Hour,
-      Session2_Start_Hour,
-      Session2_End_Hour,
-      Use_Premium_Window_Filter,
+      effective_use_commercial_time_filter,
+      effective_block_monday_entries,
+      effective_block_friday_late_entries,
+      effective_friday_block_hour,
+      effective_use_global_session_filter,
+      effective_session1_start_hour,
+      effective_session1_end_hour,
+      effective_session2_start_hour,
+      effective_session2_end_hour,
+      effective_use_premium_window_filter,
       Premium_Window_Start_Hour,
       Premium_Window_End_Hour
    );
@@ -240,6 +258,11 @@ int OnInit()
       enable_ma_trend = true;
       enable_smc_orderblock = true;
       enable_adx_trend = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_FTMO_CHALLENGE)
+     {
+      enable_ma_trend = true;
+      enable_smc_orderblock = true;
      }
 
  /* =================================================================
@@ -444,7 +467,7 @@ int OnInit()
    ObjectSetInteger(0, btnName, OBJPROP_STATE, false);
    ObjectSetInteger(0, btnName, OBJPROP_SELECTABLE, false);
 
-   Print("Quantum King v1.40 启动！MA_Trend 最优参数已载入！");
+   Print("QuantumKing v1.50 启动！Preset: " + EnumToString(Runtime_Preset));
    return(INIT_SUCCEEDED);
   }
 
