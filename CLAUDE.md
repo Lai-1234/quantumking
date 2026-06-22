@@ -30,6 +30,7 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 - Default = `QK_PRESET_MA_ONLY`.
 - Locked baselines: `MA_Trend` (**PF 1.82**, DD 4.68% balance / 5.74% equity, +$1614, 476 trades) and `SMC_OrderBlock` (**PF 3.14**, DD 15.10% balance, +$954, 245 trades).
 - `QK_PRESET_ADX_ONLY` enables ADX_Trend alone for Phase 1 optimization.
+- `CStrategy_ADX_Trend.mqh` is v1.11 and includes an optional London/NY session filter, default OFF.
 - `QK_PRESET_FTMO_CHALLENGE` forces MA + SMC, commercial time filters, commercial risk guards, London/NY sessions, and no-grid mode internally while keeping all inputs visible.
 - Account assumption remains standard USD, 400-pt max spread, 2% risk, default 20% max floating drawdown emergency stop.
 
@@ -56,7 +57,7 @@ The author/owner is the user (Lai Si Xiang). The EA is tested in the **MT5 Strat
 | `CPositionManager.mqh` (v1.20) | Order execution, **non-Martingale averaging grid** (1000-pt spacing, 150-pt breakeven escape, max 10 layers), trailing stop. |
 | `CStrategy.mqh` | Base class for all strategies. |
 | `CStrategy_MA_Trend.mqh` (v3.30) | Locked MA strategy. Loaded by presets. See §6. |
-| `CStrategy_ADX_Trend.mqh` (v1.10) | Tunable ADX strategy with optional H1/H4 EMA filters. Disabled unless selected by preset/custom mode. |
+| `CStrategy_ADX_Trend.mqh` (v1.11) | Tunable ADX strategy with optional H1/H4 EMA filters and optional London/NY session filter. Disabled unless selected by preset/custom mode. |
 | `CStrategy_*.mqh` (others) | Other strategy implementations; loaded only when registered by preset/custom code. |
 
 ### Key mechanisms

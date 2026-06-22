@@ -3,7 +3,7 @@
 //|                                      Copyright 2026, Lai Si Xiang|
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2026, Lai Si Xiang"
-#property version   "1.10"
+#property version   "1.11"
 
 #include "CStrategy.mqh"
 
@@ -25,6 +25,9 @@ private:
    int               m_h1_slow_ema_handle;
    int               m_h4_fast_ema_handle;
    int               m_h4_slow_ema_handle;
+   bool              m_use_session_filter;
+   int               m_session1_start, m_session1_end;
+   int               m_session2_start, m_session2_end;
 
    bool              IsEmaDirectionAligned(int fastHandle, int slowHandle, double signal)
                      {
@@ -46,6 +49,17 @@ private:
                            return false;
 
                         return true;
+                      }
+
+   bool              PassSessionFilter()
+                      {
+                        if(!m_use_session_filter) return true;
+                        MqlDateTime t;
+                        TimeToStruct(TimeCurrent(), t);
+                        int h = t.hour;
+                        if(h >= m_session1_start && h < m_session1_end) return true;
+                        if(h >= m_session2_start && h < m_session2_end) return true;
+                        return false;
                      }
 
 public:
@@ -67,7 +81,12 @@ public:
                                          int h1FastEma = 50,
                                          int h1SlowEma = 200,
                                          int h4FastEma = 50,
-                                         int h4SlowEma = 200)
+                                         int h4SlowEma = 200,
+                                         bool useSessionFilter = false,
+                                         int session1Start = 9,
+                                         int session1End = 12,
+                                         int session2Start = 14,
+                                         int session2End = 17)
                      : CStrategy(name, magic, weight, symbol, tf)
                      {
                         m_adx_period = adxPeriod;
@@ -99,13 +118,20 @@ public:
                            m_h4_slow_ema_handle = iMA(m_symbol, PERIOD_H4, h4SlowEma, 0, MODE_EMA, PRICE_CLOSE);
                           }
 
+                        m_use_session_filter = useSessionFilter;
+                        m_session1_start     = session1Start;
+                        m_session1_end       = session1End;
+                        m_session2_start     = session2Start;
+                        m_session2_end       = session2End;
+
                         Print(m_strategy_name,
                               " ADX tunable loaded | ADX>", m_adx_threshold,
                               " | SL buffer=", m_sl_buffer_pts,
                               " | MaxSL=", m_max_sl_pts,
                               " | TP=", m_tp_pts,
                               " | Trail=", m_trail_activation_pts, "/", m_trail_distance_pts, "/", m_trail_step_pts,
-                              " | H1/H4=", m_use_h1_filter, "/", m_use_h4_filter);
+                              " | H1/H4=", m_use_h1_filter, "/", m_use_h4_filter,
+                              " | Session=", m_use_session_filter, "(", m_session1_start, "-", m_session1_end, ",", m_session2_start, "-", m_session2_end, ")");
                      }
 
                     ~CStrategy_ADX_Trend(void)
@@ -130,6 +156,7 @@ public:
                         if(plus_di[0] > minus_di[0] && plus_di[1] <= minus_di[1])
                           {
                            if(!IsMtfAligned(100.0)) return 0.0;
+                           if(!PassSessionFilter()) return 0.0;
                            Print("[ADX Trend BUY] ADX=", adx_main[0], " +DI crossed above -DI");
                            return 100.0;
                           }
@@ -137,6 +164,7 @@ public:
                         if(minus_di[0] > plus_di[0] && minus_di[1] <= plus_di[1])
                           {
                            if(!IsMtfAligned(-100.0)) return 0.0;
+                           if(!PassSessionFilter()) return 0.0;
                            Print("[ADX Trend SELL] ADX=", adx_main[0], " -DI crossed above +DI");
                            return -100.0;
                           }
