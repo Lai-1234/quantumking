@@ -3,7 +3,7 @@
 //|                                      Copyright 2026, Lai Si Xiang|
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2026, Lai Si Xiang"
-#property version   "1.11"
+#property version   "1.12"
 
 #include "CStrategy.mqh"
 
@@ -15,16 +15,10 @@ private:
    double            m_adx_threshold;
    int               m_sl_buffer_pts;
    int               m_max_sl_pts;
-   int               m_tp_pts;
-   int               m_trail_activation_pts;
-   int               m_trail_distance_pts;
-   int               m_trail_step_pts;
-   bool              m_use_h1_filter;
    bool              m_use_h4_filter;
-   int               m_h1_fast_ema_handle;
-   int               m_h1_slow_ema_handle;
    int               m_h4_fast_ema_handle;
    int               m_h4_slow_ema_handle;
+   bool              m_require_rising_adx;
    bool              m_use_session_filter;
    int               m_session1_start, m_session1_end;
    int               m_session2_start, m_session2_end;
@@ -42,17 +36,13 @@ private:
 
    bool              IsMtfAligned(double signal)
                      {
-                        if(m_use_h1_filter && !IsEmaDirectionAligned(m_h1_fast_ema_handle, m_h1_slow_ema_handle, signal))
+                        if(!IsEmaDirectionAligned(m_h4_fast_ema_handle, m_h4_slow_ema_handle, signal))
                            return false;
-
-                        if(m_use_h4_filter && !IsEmaDirectionAligned(m_h4_fast_ema_handle, m_h4_slow_ema_handle, signal))
-                           return false;
-
                         return true;
-                      }
+                     }
 
    bool              PassSessionFilter()
-                      {
+                     {
                         if(!m_use_session_filter) return true;
                         MqlDateTime t;
                         TimeToStruct(TimeCurrent(), t);
@@ -68,77 +58,39 @@ public:
                                          double weight,
                                          string symbol,
                                          ENUM_TIMEFRAMES tf,
-                                         int adxPeriod = 14,
-                                         double adxThreshold = 25.0,
-                                         int slBufferPts = 150,
-                                         int maxSlPts = 0,
-                                         int tpPts = 10000,
-                                         int trailActivationPts = 1000,
-                                         int trailDistancePts = 1000,
-                                         int trailStepPts = 500,
-                                         bool useH1Filter = false,
-                                         bool useH4Filter = false,
-                                         int h1FastEma = 50,
-                                         int h1SlowEma = 200,
-                                         int h4FastEma = 50,
-                                         int h4SlowEma = 200,
-                                         bool useSessionFilter = false,
-                                         int session1Start = 9,
-                                         int session1End = 12,
-                                         int session2Start = 14,
-                                         int session2End = 17)
+                                         int adxPeriod = 13,
+                                         double adxThreshold = 32.5,
+                                         int slBufferPts = 50,
+                                         int maxSlPts = 1300,
+                                         bool requireRising = true)
                      : CStrategy(name, magic, weight, symbol, tf)
                      {
-                        m_adx_period = adxPeriod;
-                        m_adx_threshold = adxThreshold;
-                        m_sl_buffer_pts = slBufferPts;
-                        m_max_sl_pts = maxSlPts;
-                        m_tp_pts = tpPts;
-                        m_trail_activation_pts = trailActivationPts;
-                        m_trail_distance_pts = trailDistancePts;
-                        m_trail_step_pts = trailStepPts;
-                        m_use_h1_filter = useH1Filter;
-                        m_use_h4_filter = useH4Filter;
+                        m_adx_period         = adxPeriod;
+                        m_adx_threshold      = adxThreshold;
+                        m_sl_buffer_pts      = slBufferPts;
+                        m_max_sl_pts         = maxSlPts;
+                        m_require_rising_adx = requireRising;
 
                         m_adx_handle = iADX(m_symbol, m_timeframe, m_adx_period);
-                        m_h1_fast_ema_handle = INVALID_HANDLE;
-                        m_h1_slow_ema_handle = INVALID_HANDLE;
-                        m_h4_fast_ema_handle = INVALID_HANDLE;
-                        m_h4_slow_ema_handle = INVALID_HANDLE;
 
-                        if(m_use_h1_filter)
-                          {
-                           m_h1_fast_ema_handle = iMA(m_symbol, PERIOD_H1, h1FastEma, 0, MODE_EMA, PRICE_CLOSE);
-                           m_h1_slow_ema_handle = iMA(m_symbol, PERIOD_H1, h1SlowEma, 0, MODE_EMA, PRICE_CLOSE);
-                          }
+                        m_use_h4_filter      = true;
+                        m_h4_fast_ema_handle = iMA(m_symbol, PERIOD_H4, 50,  0, MODE_EMA, PRICE_CLOSE);
+                        m_h4_slow_ema_handle = iMA(m_symbol, PERIOD_H4, 200, 0, MODE_EMA, PRICE_CLOSE);
 
-                        if(m_use_h4_filter)
-                          {
-                           m_h4_fast_ema_handle = iMA(m_symbol, PERIOD_H4, h4FastEma, 0, MODE_EMA, PRICE_CLOSE);
-                           m_h4_slow_ema_handle = iMA(m_symbol, PERIOD_H4, h4SlowEma, 0, MODE_EMA, PRICE_CLOSE);
-                          }
-
-                        m_use_session_filter = useSessionFilter;
-                        m_session1_start     = session1Start;
-                        m_session1_end       = session1End;
-                        m_session2_start     = session2Start;
-                        m_session2_end       = session2End;
+                        m_use_session_filter = true;
+                        m_session1_start = 9;  m_session1_end = 12;
+                        m_session2_start = 14; m_session2_end = 17;
 
                         Print(m_strategy_name,
-                              " ADX tunable loaded | ADX>", m_adx_threshold,
-                              " | SL buffer=", m_sl_buffer_pts,
-                              " | MaxSL=", m_max_sl_pts,
-                              " | TP=", m_tp_pts,
-                              " | Trail=", m_trail_activation_pts, "/", m_trail_distance_pts, "/", m_trail_step_pts,
-                              " | H1/H4=", m_use_h1_filter, "/", m_use_h4_filter,
-                              " | Session=", m_use_session_filter, "(", m_session1_start, "-", m_session1_end, ",", m_session2_start, "-", m_session2_end, ")");
+                              " v1.12 | ADX(", m_adx_period, ")>", m_adx_threshold,
+                              " Rising=", m_require_rising_adx,
+                              " | SL buf=", m_sl_buffer_pts, " MaxSL=", m_max_sl_pts,
+                              " | H4 EMA 50/200 ON | Session 9-12/14-17 ON | TP=10000 Trail=OFF");
                      }
 
                     ~CStrategy_ADX_Trend(void)
                      {
                         if(m_adx_handle != INVALID_HANDLE) IndicatorRelease(m_adx_handle);
-                        if(m_h1_fast_ema_handle != INVALID_HANDLE) IndicatorRelease(m_h1_fast_ema_handle);
-                        if(m_h1_slow_ema_handle != INVALID_HANDLE) IndicatorRelease(m_h1_slow_ema_handle);
                         if(m_h4_fast_ema_handle != INVALID_HANDLE) IndicatorRelease(m_h4_fast_ema_handle);
                         if(m_h4_slow_ema_handle != INVALID_HANDLE) IndicatorRelease(m_h4_slow_ema_handle);
                      }
@@ -152,6 +104,7 @@ public:
                            CopyBuffer(m_adx_handle, 2, 1, 2, minus_di) <= 0) return 0.0;
 
                         if(adx_main[0] < m_adx_threshold) return 0.0;
+                        if(m_require_rising_adx && adx_main[0] <= adx_main[1]) return 0.0;
 
                         if(plus_di[0] > minus_di[0] && plus_di[1] <= minus_di[1])
                           {
@@ -196,13 +149,13 @@ public:
                           {
                            double dynamic_sl_pts = (current_price - swing_low) / point + m_sl_buffer_pts;
                            if(m_max_sl_pts > 0 && dynamic_sl_pts > m_max_sl_pts) dynamic_sl_pts = m_max_sl_pts;
-                           is_opened = posMgr.ExecuteOrderWithSLTP(m_symbol, ORDER_TYPE_BUY, safe_lot, m_magic_number, m_strategy_name, dynamic_sl_pts, m_tp_pts);
+                           is_opened = posMgr.ExecuteOrderWithSLTP(m_symbol, ORDER_TYPE_BUY, safe_lot, m_magic_number, m_strategy_name, dynamic_sl_pts, 10000);
                           }
                         else if(signal == -100.0)
                           {
                            double dynamic_sl_pts = (swing_high - current_price) / point + m_sl_buffer_pts;
                            if(m_max_sl_pts > 0 && dynamic_sl_pts > m_max_sl_pts) dynamic_sl_pts = m_max_sl_pts;
-                           is_opened = posMgr.ExecuteOrderWithSLTP(m_symbol, ORDER_TYPE_SELL, safe_lot, m_magic_number, m_strategy_name, dynamic_sl_pts, m_tp_pts);
+                           is_opened = posMgr.ExecuteOrderWithSLTP(m_symbol, ORDER_TYPE_SELL, safe_lot, m_magic_number, m_strategy_name, dynamic_sl_pts, 10000);
                           }
 
                         if(is_opened) last_bar_time = current_bar_time;
@@ -210,7 +163,7 @@ public:
 
    virtual void      CheckExit(CPositionManager *posMgr) override
                      {
-                        posMgr.ManageTrailingStop(m_symbol, m_magic_number, m_trail_activation_pts, m_trail_distance_pts, m_trail_step_pts);
+                        posMgr.ManageTrailingStop(m_symbol, m_magic_number, 50000, 50000, 1000);
                      }
   };
 //+------------------------------------------------------------------+

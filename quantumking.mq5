@@ -120,25 +120,10 @@ input bool   SMC_Use_Trail_With_RR = false; // SMC trail+R:R hybrid (captures mi
 // ======================================================================
 // ADX_Trend tunable research inputs (strategy disabled by default)
 // ======================================================================
-input int    ADX_Period             = 14;    // ADX period
-input double ADX_Threshold          = 25.0;  // ADX strength threshold
-input int    ADX_SL_Buffer_Pts      = 150;   // Structure SL buffer pts
-input int    ADX_Max_SL_Pts         = 0;     // 0 = no cap, >0 caps structure SL
-input int    ADX_TP_Pts             = 10000; // Take-profit pts
-input int    ADX_Trail_Start_Pts    = 1000;  // Trail activation pts
-input int    ADX_Trail_Dist_Pts     = 1000;  // Trail distance pts
-input int    ADX_Trail_Step_Pts     = 500;   // Trail step pts
-input bool   ADX_Use_H1_Filter      = false; // H1 EMA alignment filter
-input bool   ADX_Use_H4_Filter      = false; // H4 EMA alignment filter
-input int    ADX_H1_Fast_EMA        = 50;    // H1 fast EMA
-input int    ADX_H1_Slow_EMA        = 200;   // H1 slow EMA
-input int    ADX_H4_Fast_EMA        = 50;    // H4 fast EMA
-input int    ADX_H4_Slow_EMA        = 200;   // H4 slow EMA
-input bool   ADX_Use_Session_Filter = false; // London/NY session filter
-input int    ADX_Session1_Start     = 9;     // London session start (server hour)
-input int    ADX_Session1_End       = 12;    // London session end
-input int    ADX_Session2_Start     = 14;    // NY session start
-input int    ADX_Session2_End       = 17;    // NY session end
+input int    ADX_Period             = 13;    // ADX period
+input double ADX_Threshold          = 32.5;  // ADX strength threshold
+input int    ADX_SL_Buffer_Pts      = 50;    // Structure SL buffer pts
+input int    ADX_Max_SL_Pts         = 1300;  // 0=no cap, >0 caps structure SL
 // ======================================================================
 
 // ======================================================================
@@ -392,22 +377,7 @@ int OnInit()
       ADX_Period,
       ADX_Threshold,
       ADX_SL_Buffer_Pts,
-      ADX_Max_SL_Pts,
-      ADX_TP_Pts,
-      ADX_Trail_Start_Pts,
-      ADX_Trail_Dist_Pts,
-      ADX_Trail_Step_Pts,
-      ADX_Use_H1_Filter,
-      ADX_Use_H4_Filter,
-      ADX_H1_Fast_EMA,
-      ADX_H1_Slow_EMA,
-      ADX_H4_Fast_EMA,
-      ADX_H4_Slow_EMA,
-      ADX_Use_Session_Filter,
-      ADX_Session1_Start,
-      ADX_Session1_End,
-      ADX_Session2_Start,
-      ADX_Session2_End
+      ADX_Max_SL_Pts
    ));
    ==================================================================== */
 
@@ -422,22 +392,7 @@ int OnInit()
          ADX_Period,
          ADX_Threshold,
          ADX_SL_Buffer_Pts,
-         ADX_Max_SL_Pts,
-         ADX_TP_Pts,
-         ADX_Trail_Start_Pts,
-         ADX_Trail_Dist_Pts,
-         ADX_Trail_Step_Pts,
-         ADX_Use_H1_Filter,
-         ADX_Use_H4_Filter,
-         ADX_H1_Fast_EMA,
-         ADX_H1_Slow_EMA,
-         ADX_H4_Fast_EMA,
-         ADX_H4_Slow_EMA,
-         ADX_Use_Session_Filter,
-         ADX_Session1_Start,
-         ADX_Session1_End,
-         ADX_Session2_Start,
-         ADX_Session2_End
+         ADX_Max_SL_Pts
       ));
      }
    //StrategyMgr.AddStrategy(new CStrategy_Pivot_Divergence("枢轴点回归", 10006, 0.3, _Symbol, PERIOD_M15));
