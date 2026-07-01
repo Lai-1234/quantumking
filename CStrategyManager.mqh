@@ -3,7 +3,7 @@
 //|                                      Copyright 2026, Lai Si Xiang|
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2026, Lai Si Xiang"
-#property version   "1.30" // 终极进化：智能分级锁 (隔离网格风险，释放优质信号)
+#property version   "1.31" // Fix: Monday/Friday gap guards now run unconditionally (were silently gated off)
 
 #include "CStrategy.mqh"
 
@@ -76,16 +76,19 @@ private:
 
    bool IsCommercialEntryTimeAllowed(void)
    {
-      if(!m_use_commercial_time_filter) return true;
-
       MqlDateTime time;
       TimeToStruct(TimeCurrent(), time);
 
+      // Monday/Friday gap protection runs unconditionally — these are gap-risk
+      // guards, not session-window preference, so they must not be gated behind
+      // m_use_commercial_time_filter (was silently disabled when that flag was false).
       if(m_block_monday_entries && time.day_of_week == 1)
          return false;
 
       if(m_block_friday_late_entries && time.day_of_week == 5 && time.hour >= m_friday_block_hour)
          return false;
+
+      if(!m_use_commercial_time_filter) return true;
 
       if(m_use_premium_window_filter)
          return IsHourInRange(time.hour, m_premium_window_start, m_premium_window_end);

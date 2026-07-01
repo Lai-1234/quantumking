@@ -123,6 +123,11 @@
       "path":"quantumking.mq5",
       "compile":true,
       "relative_to_project":true
+    },
+    {
+      "path":"CStrategy_BIAS_Reversion.mqh",
+      "compile":false,
+      "relative_to_project":true
     }
   ]
 }

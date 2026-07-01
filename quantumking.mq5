@@ -5,7 +5,7 @@
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2026, Lai Si Xiang"
 #property link      "https://www.mql5.com"
-#property version   "1.50" // Commercial preset foundation
+#property version   "1.52" // Add MACD_Momentum v1.10 optimization wiring
 
 #include "CStrategyManager.mqh"
 #include "CStrategy_MA_Trend.mqh"
@@ -17,6 +17,7 @@
 #include "CStrategy_Fractal_Breakout.mqh"
 #include "CStrategy_Pulse_Momentum.mqh"
 #include "CStrategy_SMC_OrderBlock.mqh"
+#include "CStrategy_BIAS_Reversion.mqh"
 
 enum ENUM_QK_RUNTIME_PRESET
   {
@@ -25,6 +26,7 @@ enum ENUM_QK_RUNTIME_PRESET
    QK_PRESET_MA_SMC = 2,
    QK_PRESET_MA_SMC_ADX = 3,
    QK_PRESET_ADX_ONLY = 6,
+   QK_PRESET_MACD_ONLY = 7,
    QK_PRESET_CUSTOM = 4,
    QK_PRESET_FTMO_CHALLENGE = 5
   };
@@ -35,10 +37,14 @@ enum ENUM_QK_RUNTIME_PRESET
 input ENUM_QK_RUNTIME_PRESET Runtime_Preset = QK_PRESET_MA_ONLY; // Default: safest legacy runtime
 input bool   Custom_Enable_MA_Trend        = true;  // CUSTOM preset: enable MA_Trend
 input bool   Custom_Enable_SMC_OrderBlock  = false; // CUSTOM preset: enable SMC
+input bool   Custom_Enable_MACD_Momentum   = false; // CUSTOM preset: enable MACD
 input bool   Custom_Enable_ADX_Trend       = false; // CUSTOM preset: enable ADX
+input bool   Custom_Enable_BIAS_Reversion  = false; // CUSTOM preset: enable BIAS_Reversion (experimental)
 input double MA_Trend_Weight               = 1.0;   // MA strategy weight (1.0 = full)
 input double SMC_OrderBlock_Weight         = 1.0;   // SMC strategy weight (1.0 = full)
+input double MACD_Momentum_Weight          = 0.3;   // MACD strategy weight
 input double ADX_Trend_Weight              = 0.3;   // ADX strategy weight
+input double BIAS_Reversion_Weight         = 0.3;   // BIAS_Reversion strategy weight (experimental)
 // ======================================================================
 
 // ======================================================================
@@ -120,10 +126,37 @@ input bool   SMC_Use_Trail_With_RR = false; // SMC trail+R:R hybrid (captures mi
 // ======================================================================
 // ADX_Trend tunable research inputs (strategy disabled by default)
 // ======================================================================
-input int    ADX_Period             = 13;    // ADX period
-input double ADX_Threshold          = 32.5;  // ADX strength threshold
-input int    ADX_SL_Buffer_Pts      = 50;    // Structure SL buffer pts
-input int    ADX_Max_SL_Pts         = 1300;  // 0=no cap, >0 caps structure SL
+input int    ADX_Period             = 12;    // ADX period (locked 2026-06-23)
+input double ADX_Threshold          = 45.0;  // ADX strength threshold (locked)
+input int    ADX_SL_Buffer_Pts      = 40;    // Structure SL buffer pts (locked)
+input int    ADX_Max_SL_Pts         = 500;   // Max SL cap pts (locked)
+// ======================================================================
+
+// ======================================================================
+// MACD_Momentum tunable research inputs (v1.10, not locked)
+// ======================================================================
+input int    MACD_Fast_EMA          = 12;    // MACD fast EMA period
+input int    MACD_Slow_EMA          = 26;    // MACD slow EMA period
+input int    MACD_Signal_SMA        = 9;     // MACD signal SMA period
+input int    MACD_SL_Buffer_Pts     = 150;   // Structure SL buffer pts
+input int    MACD_Max_SL_Pts        = 800;   // 0=no cap, >0 skips trades above cap
+// ======================================================================
+
+// ======================================================================
+// BIAS_Reversion tunable research inputs (v1.00, EXPERIMENTAL, disabled by default)
+// Fills the empty LOW_VOL_RANGE regime slot (MA/SMC/ADX all require HIGH_VOL_TREND).
+// ======================================================================
+input int    BIAS_MA_Period            = 50;    // MA period for deviation calc
+input double BIAS_Threshold_Pct        = 0.5;    // BIAS %% extreme that triggers reversion (test range 0.3-0.8)
+input int    BIAS_SL_Buffer_Pts        = 50;     // Structure SL buffer pts
+input int    BIAS_Max_SL_Pts           = 500;    // Max SL cap pts — trade skipped (not clamped) if exceeded
+input int    BIAS_TP_Pts               = 2000;   // Fixed TP pts (test range 1000-4000)
+input int    BIAS_Swing_Lookback       = 50;     // Bars to scan for swing high/low (test range 20-60)
+input bool   BIAS_Use_KDJ_Filter       = false;  // Require KDJ OB/OS within lookback window
+input int    BIAS_KDJ_Lookback_Bars    = 3;      // KDJ extreme lookback window (bars)
+input bool   BIAS_Use_ADX_Max_Filter   = false;  // Require ADX below max (confirm genuine range)
+input double BIAS_ADX_Max              = 22.0;   // ADX ceiling for ADX max filter (test range 18-25)
+input bool   BIAS_Use_Session_Filter   = false;  // Test ON vs OFF — trend-session window may not transfer
 // ======================================================================
 
 // ======================================================================
@@ -217,7 +250,9 @@ int OnInit()
 
    bool enable_ma_trend = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_MA_Trend : false;
    bool enable_smc_orderblock = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_SMC_OrderBlock : false;
+   bool enable_macd_momentum = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_MACD_Momentum : false;
    bool enable_adx_trend = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_ADX_Trend : false;
+   bool enable_bias_reversion = (Runtime_Preset == QK_PRESET_CUSTOM) ? Custom_Enable_BIAS_Reversion : false; // experimental, CUSTOM-only — no preset enables this
 
    if(Runtime_Preset == QK_PRESET_MA_ONLY)
      {
@@ -241,6 +276,10 @@ int OnInit()
    else if(Runtime_Preset == QK_PRESET_ADX_ONLY)
      {
       enable_adx_trend = true;
+     }
+   else if(Runtime_Preset == QK_PRESET_MACD_ONLY)
+     {
+      enable_macd_momentum = true;
      }
    else if(Runtime_Preset == QK_PRESET_FTMO_CHALLENGE)
      {
@@ -367,6 +406,22 @@ int OnInit()
 
    //StrategyMgr.AddStrategy(new CStrategy_Asian_Breakout("亚盘顺势", 10003, 1.0, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_MACD_Momentum("MACD顺势", 10004, 1.0, _Symbol, PERIOD_M15));
+   if(enable_macd_momentum)
+     {
+      StrategyMgr.AddStrategy(new CStrategy_MACD_Momentum(
+         "MACD顺势",
+         10004,
+         MACD_Momentum_Weight,
+         _Symbol,
+         PERIOD_M15,
+         MACD_Fast_EMA,
+         MACD_Slow_EMA,
+         MACD_Signal_SMA,
+         MACD_SL_Buffer_Pts,
+         MACD_Max_SL_Pts
+      ));
+     }
+
    /* ===== ADX tunable disabled; enable for ADX solo/pair testing =====
    StrategyMgr.AddStrategy(new CStrategy_ADX_Trend(
       "ADX顺势",
@@ -395,6 +450,29 @@ int OnInit()
          ADX_Max_SL_Pts
       ));
      }
+
+   // v1.00 EXPERIMENTAL — not optimized, not locked. CUSTOM preset only.
+   if(enable_bias_reversion)
+     {
+      StrategyMgr.AddStrategy(new CStrategy_BIAS_Reversion(
+         "BIAS回归",
+         10011,
+         BIAS_Reversion_Weight,
+         _Symbol,
+         PERIOD_M15,
+         BIAS_MA_Period,
+         BIAS_Threshold_Pct,
+         BIAS_SL_Buffer_Pts,
+         BIAS_Max_SL_Pts,
+         BIAS_TP_Pts,
+         BIAS_Swing_Lookback,
+         BIAS_Use_KDJ_Filter,
+         BIAS_KDJ_Lookback_Bars,
+         BIAS_Use_ADX_Max_Filter,
+         BIAS_ADX_Max,
+         BIAS_Use_Session_Filter
+      ));
+     }
    //StrategyMgr.AddStrategy(new CStrategy_Pivot_Divergence("枢轴点回归", 10006, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_VWAP_Reversion("VWAP回归", 10007, 0.3, _Symbol, PERIOD_M15));
    //StrategyMgr.AddStrategy(new CStrategy_Fractal_Breakout("碎形顺势", 10008, 1.0, _Symbol, PERIOD_M15));
@@ -414,7 +492,7 @@ int OnInit()
    ObjectSetInteger(0, btnName, OBJPROP_STATE, false);
    ObjectSetInteger(0, btnName, OBJPROP_SELECTABLE, false);
 
-   Print("QuantumKing v1.50 启动！Preset: " + EnumToString(Runtime_Preset));
+   Print("QuantumKing v1.52 启动！Preset: " + EnumToString(Runtime_Preset));
    return(INIT_SUCCEEDED);
   }
 
