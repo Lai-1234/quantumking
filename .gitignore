@@ -1,0 +1,43 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+
+# --- Logs / local run artifacts ---
+*.log
+compile*.log
+
+# --- MetaTrader 5 / MQL5 ---
+# .set files hold Strategy Tester "Inputs" presets. The ones in this repo
+# (if any) are shared strategy parameter presets, not account credentials —
+# but any .set exported directly from a live/funded MT5 profile can embed
+# account-specific data, so keep them out of version control by default.
+# Explicitly `git add -f` a .set file if you intentionally want to share it.
+*.set
+
+# MT5 terminal/profile data that can contain account or login info
+*.srv
+*account*.ini
+*login*.ini
+Config/accounts.dat
+Profiles/
+
+# Compiled MQL5 binaries (rebuildable from source; keeping .ex5 is optional —
+# uncomment the next line if you don't want to track compiled binaries)
+# *.ex5
+
+# --- Editors ---
+.vscode/
+.idea/

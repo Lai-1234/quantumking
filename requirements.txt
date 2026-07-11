@@ -1,0 +1,10 @@
+# Python research pipeline (python/) — QuantumKing XAUUSD backtesting & optimization
+# Derived from actual imports in python/quantumking/*, python/scripts/*, python/tests/*
+
+MetaTrader5>=5.0.45   # live data pull / symbol probing (Windows + running MT5 terminal required)
+pandas>=2.1           # OHLCV handling, backtest engine, result tables
+numpy>=1.26            # indicator math
+optuna>=3.5             # parameter optimization (grid/genetic search, walk-forward)
+joblib>=1.3             # parallel execution for portfolio/grid sweeps
+pyarrow>=15.0           # parquet read/write engine used by pandas (data.py, cached bars/trades)
+pytest>=8.0             # test suite (python/tests/)
